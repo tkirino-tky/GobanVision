@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- 内部ストレージの filesDir -->
+    <files-path name="internal_sgf" path="." />
+
+    <!-- 内部ストレージの cacheDir -->
+    <cache-path name="internal_cache" path="." />
+
+    <!-- 外部ストレージ（DocumentsやDownloadsなど）のルートを網羅して公開する設定 -->
+    <external-path name="external_storage_root" path="." />
+    <external-files-path name="external_files_path" path="." />
+    <external-storage-path name="external_storage_path" path="." />
+</paths>
