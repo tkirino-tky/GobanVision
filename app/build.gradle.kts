@@ -1,9 +1,10 @@
 import org.gradle.kotlin.dsl.implementation
 
-plugins {alias(libs.plugins.android.application)
+plugins {
+    alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    alias(libs.plugins.kotlin.serialization) // Add this
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -12,7 +13,6 @@ android {
 
     defaultConfig {
         applicationId = "com.github.tkirino.gobanreader"
-        // 24であったものを一次的に29に変更
         minSdk = 29
         targetSdk = 35
         versionCode = 1
@@ -29,8 +29,9 @@ android {
 
     buildFeatures {
         buildConfig = true
+        compose = true
     }
-    
+
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -42,20 +43,20 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_21 // 11から17、21へ
-        targetCompatibility = JavaVersion.VERSION_21 // 11から17、21へ
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
 
-    buildFeatures {
-        compose = true
+    // .tflite モデルがビルド時に二重圧縮されるのを防ぐ設定
+    aaptOptions {
+        noCompress("tflite")
     }
 
     packaging {
         jniLibs {
             useLegacyPackaging = true
             pickFirsts.add("lib/**/libc++_shared.so")
-            pickFirsts.add("lib/**/libpytorch_jni.so")
-            pickFirsts.add("lib/**/libfbjni.so")
+            // PyTorch固有のjniライブラリ指定は不要になったため削除しました
         }
     }
 }
@@ -74,7 +75,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.navigation.compose)
-    implementation(libs.kotlinx.serialization.json) // Add this
+    implementation(libs.kotlinx.serialization.json)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -85,19 +86,19 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 
-    // これを追加
     implementation(libs.accompanist.permissions)
 
-    // CameraX 関係（これらは既に入っているはずですが確認してください）
+    // CameraX 関係
     implementation(libs.androidx.camera.core)
     implementation(libs.androidx.camera.camera2)
     implementation(libs.androidx.camera.lifecycle)
     implementation(libs.androidx.camera.view)
 
-    // ★この1行を追加するだけでOpenCVが使えるようになります！
+    // OpenCV
     implementation("org.opencv:opencv:4.10.0")
 
-    // 最も安定している1.13.1に戻します。互換性・安定性が格段に高いです。
-    implementation("org.pytorch:pytorch_android_lite:1.13.1")
-    implementation("org.pytorch:pytorch_android_torchvision_lite:1.13.1")
+    // --- TensorFlow Lite ---
+    implementation("org.tensorflow:tensorflow-lite:2.14.0")
+    // 必要に応じてGPU支援を使う場合は有効化してください
+    // implementation("org.tensorflow:tensorflow-lite-gpu:2.14.0")
 }
