@@ -35,11 +35,6 @@ class YoloCornerDetector(private val interpreter: Interpreter) {
 
         try {
             val croppedBoard = Mat(fullSrc, guideRect)
-
-            if (DebugConfig.EXPORT_ORIGINAL_BOARD_FOR_AUG) {
-                MainViewModel.saveCroppedBoardToDownload(croppedBoard)
-            }
-
             val resizedBoard = Mat()
             Imgproc.resize(croppedBoard, resizedBoard, Size(640.0, 640.0))
             croppedBoard.release()
@@ -52,8 +47,8 @@ class YoloCornerDetector(private val interpreter: Interpreter) {
             val inputBuffer = convertMatToByteBuffer(resizedBoard)
             resizedBoard.release()
 
-            // 出力バッファの形状確認 (onnx2tf出力: [1, 8, 8400] などを想定)
-            val outputShape = interpreter.getOutputTensor(0).shape() // 例: [1, 8, 8400]
+            // 出力バッファの形状確認
+            val outputShape = interpreter.getOutputTensor(0).shape()
             val outputSize = outputShape.fold(1) { acc, i -> acc * i }
             val outputBuffer = ByteBuffer.allocateDirect(outputSize * 4).order(ByteOrder.nativeOrder())
 
@@ -108,9 +103,11 @@ class YoloCornerDetector(private val interpreter: Interpreter) {
         bitmap.getPixels(intValues, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
 
         for (pixelValue in intValues) {
+            // 元の正しいチャンネル順に戻す
             val r = ((pixelValue shr 16) and 0xFF) / 255.0f
             val g = ((pixelValue shr 8) and 0xFF) / 255.0f
             val b = (pixelValue and 0xFF) / 255.0f
+
             byteBuffer.putFloat(r)
             byteBuffer.putFloat(g)
             byteBuffer.putFloat(b)
@@ -128,6 +125,7 @@ class YoloCornerDetector(private val interpreter: Interpreter) {
         val numElements = shape[2]
 
         val bestDetections = mutableMapOf<Int, Triple<Float, Float, Float>>()
+        var debugCount = 0
 
         for (i in 0 until numElements) {
             var maxClassScore = 0f
@@ -141,7 +139,15 @@ class YoloCornerDetector(private val interpreter: Interpreter) {
                 }
             }
 
-            if (maxClassScore > 0.5f && bestClassId != -1) {
+            if (maxClassScore > 0.2f && debugCount < 5) {
+                val xc_raw = data[0 * numElements + i]
+                val yc_raw = data[1 * numElements + i]
+                Log.d("YoloDebug", "Raw Detection [$i]: class=$bestClassId, score=$maxClassScore, xc=$xc_raw, yc=$yc_raw")
+                debugCount++
+            }
+
+            // ★ 閾値を 0.5f から 0.35f に引き下げて、環境変化によるスコア低下を救う
+            if (maxClassScore > 0.35f && bestClassId != -1) {
                 val xc = data[0 * numElements + i]
                 val yc = data[1 * numElements + i]
                 if (!bestDetections.containsKey(bestClassId) || bestDetections[bestClassId]!!.third < maxClassScore) {
@@ -150,13 +156,15 @@ class YoloCornerDetector(private val interpreter: Interpreter) {
             }
         }
 
+        Log.d("YoloDebug", "Total valid classes detected: ${bestDetections.keys}")
+
         val rawPoints = mutableListOf<Point>()
         val confidences = mutableListOf<Float>()
 
         val scaleX = guideRect.width.toDouble() / 640.0
         val scaleY = guideRect.height.toDouble() / 640.0
 
-        for ((_, triple) in bestDetections) {
+        for ((classId, triple) in bestDetections) {
             val (xc, yc, conf) = triple
             val absX = guideRect.x + xc * scaleX
             val absY = guideRect.y + yc * scaleY

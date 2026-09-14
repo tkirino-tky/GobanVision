@@ -7,13 +7,16 @@ object DebugConfig {
      val isEnabled: Boolean get() = BuildConfig.DEBUG
 
     // 各機能のON/OFF
-    // 教師データ収集ルーチン（必要な時だけここを true にする）
-    const val EXPORT_DATASET_PAIR = false
+    // 碁石検出CNN用教師データ収集ルーチン
+    const val EXPORT_DATASET_PAIR = true
+    // 碁盤罫線の角（コーナー）の画像を出力（確認のため）
     const val EXPORT_CORNER_IMAGES = false
 
-    // 教師データ（ヒートマップ用） - 必要になるまで普段は false にしておく
+    // 碁盤の角検出の教師データ（640x640にresizeされている）
     const val EXPORT_CROPPED_RECT_IMAGE = false
 
-    // 新しく追加する回転オーグメンテーション用の原画保存フラグ
-    const val EXPORT_ORIGINAL_BOARD_FOR_AUG = false
+    // 碁盤罫線の角（コーナー）検出のYOLO用教師データ（ガイドフレームで切り取ったもの.
+    // resizeされていない　
+    // カメラのレンズ　1.0xでは 1584x1648、0.8xでは 860x894
+    const val EXPORT_ORIGINAL_BOARD_FOR_AUG = true
 }
