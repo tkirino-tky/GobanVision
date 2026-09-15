@@ -1,7 +1,6 @@
 package com.github.tkirino.gobanreader
 
 import android.app.Application
-import android.graphics.Bitmap
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -25,11 +24,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.opencv.android.Utils
 import org.opencv.core.Mat
 import org.opencv.core.Point
 import org.opencv.core.Rect
-import org.opencv.core.Size
 import org.opencv.imgcodecs.Imgcodecs
 import org.opencv.imgproc.Imgproc
 import org.tensorflow.lite.Interpreter
@@ -88,18 +87,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    private fun assetFilePath(context: android.content.Context, assetName: String): String {
-        val file = File(context.filesDir, assetName)
-        if (!file.exists()) {
-            context.assets.open(assetName).use { inputStream ->
-                FileOutputStream(file).use { outputStream ->
-                    inputStream.copyTo(outputStream)
-                }
-            }
-        }
-        return file.absolutePath
-    }
-
     fun updateHandicap(handicap: Int) {
         _uiState.value = _uiState.value.copy(gameRecord = _uiState.value.gameRecord.copy(handicap = handicap))
     }
@@ -115,70 +102,65 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         remoteShutterTrigger++
     }
 
-    fun loadPhotoForAdjustment(file: File) {
-        viewModelScope.launch(Dispatchers.Default) {
-            val detector = yoloCornerDetector
-            if (detector == null) {
-                Log.e("MainViewModel", "yoloCornerDetector が初期化されていません")
-            }
+    fun loadPhotoForAdjustment(photoPath: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                // 1. オリジナル画像の読み込み
+                val fullSrc = Imgcodecs.imread(photoPath)
+                if (fullSrc.empty()) {
+                    Log.e("MainViewModel", "画像の読み込みに失敗しました: $photoPath")
+                    return@launch
+                }
+                lastSourceMat?.release()
+                lastSourceMat = fullSrc.clone()
 
-            // 新しいセッションID（タイムスタンプ）をここで発行して保持
-            currentSessionId = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+                val imgCols = fullSrc.cols().toDouble()
+                val imgRows = fullSrc.rows().toDouble()
 
-            val originalBitmap = android.graphics.BitmapFactory.decodeFile(file.absolutePath)
-            val rotatedBitmap = rotateBitmapIfNeeded(file.absolutePath, originalBitmap)
+                // 2. CameraScreenの全幅正方形領域に相当する正方形(1:1)のクロップ範囲を算出
+                val squareSize = kotlin.math.min(imgCols, imgRows)
+                val startX = (imgCols - squareSize) / 2.0
+                val startY = (imgRows - squareSize) / 2.0
 
-            val fullSrc = Mat()
-            Utils.bitmapToMat(rotatedBitmap, fullSrc)
-            Imgproc.cvtColor(fullSrc, fullSrc, Imgproc.COLOR_RGBA2BGR)
-
-            val guideRect = GeometryUtils.calculateGuideRect(fullSrc.cols().toDouble(), fullSrc.rows().toDouble())
-
-            // ガイドフレームで切り出した生画像をここで保存
-            if (DebugConfig.EXPORT_ORIGINAL_BOARD_FOR_AUG) {
-                val croppedBoard = Mat(fullSrc, guideRect)
-                saveCroppedBoardWithSessionId(croppedBoard, currentSessionId!!)
-                croppedBoard.release()
-            }
-
-            // コーナー検出
-            val cnnResult = detector?.detectCorners(fullSrc, guideRect)
-                ?: YoloCornerDetector.DetectionResult(emptyList(), false)
-
-            val detectedCorners = if (cnnResult.found && cnnResult.corners.size == 4) {
-                cnnResult.corners
-            } else {
-                listOf(
-                    org.opencv.core.Point(guideRect.x.toDouble(), guideRect.y.toDouble()),
-                    org.opencv.core.Point((guideRect.x + guideRect.width).toDouble(), guideRect.y.toDouble()),
-                    org.opencv.core.Point((guideRect.x + guideRect.width).toDouble(), (guideRect.y + guideRect.height).toDouble()),
-                    org.opencv.core.Point(guideRect.x.toDouble(), (guideRect.y + guideRect.height).toDouble())
+                val guideRect = Rect(
+                    startX.toInt().coerceIn(0, fullSrc.cols() - 1),
+                    startY.toInt().coerceIn(0, fullSrc.rows() - 1),
+                    squareSize.toInt().coerceAtMost(fullSrc.cols() - startX.toInt()),
+                    squareSize.toInt().coerceAtMost(fullSrc.rows() - startY.toInt())
                 )
+
+                // 3. YOLO学習用・デバッグ用画像の切り出しと保存
+                if (DebugConfig.EXPORT_ORIGINAL_BOARD_FOR_AUG && currentSessionId != null) {
+                    if (guideRect.width > 0 && guideRect.height > 0) {
+                        val croppedBoard = Mat(fullSrc, guideRect)
+                        saveCroppedBoardWithSessionId(croppedBoard, currentSessionId!!)
+                        croppedBoard.release()
+                    }
+                }
+
+                // 4. YoloCornerDetectorによるコーナー検出の実行
+                val detector = yoloCornerDetector
+                val detectionResult = detector?.detectCorners(fullSrc, guideRect)
+
+                withContext(Dispatchers.Main) {
+                    if (detectionResult != null && detectionResult.found) {
+                        // 検出できた場合は、コーナー座標を保持してUI状態を更新
+                        isCornerQualityGood = true
+                        cornerQualityMessage = "コーナーが正常に検出されました"
+                        _uiState.update { it.copy(initialCorners = detectionResult.corners) }
+                    } else {
+                        // 検出失敗時のエラーハンドリング
+                        isCornerQualityGood = false
+                        cornerQualityMessage = detectionResult?.errorMessage ?: "YOLOモデルが初期化されていません"
+                        _uiState.update { it.copy(initialCorners = emptyList()) }
+                    }
+                }
+
+                fullSrc.release()
+
+            } catch (e: Exception) {
+                Log.e("MainViewModel", "loadPhotoForAdjustmentエラー", e)
             }
-
-            if (!cnnResult.found) {
-                cornerQualityMessage = "座標の取得に失敗しました"
-                isCornerQualityGood = false
-            } else if (!isCornerQualityHigh(detectedCorners, fullSrc.cols().toDouble(), fullSrc.rows().toDouble())) {
-                cornerQualityMessage = "罫線のかどの位置を手動で変更してください"
-                isCornerQualityGood = false
-            } else {
-                cornerQualityMessage = "座標の変更の必要はありません"
-                isCornerQualityGood = true
-            }
-
-            lastSourceMat?.release()
-            lastSourceMat = fullSrc.clone()
-
-            _uiState.update {
-                it.copy(
-                    adjustmentBitmap = rotatedBitmap,
-                    initialCorners = detectedCorners,
-                    rawCorners = detectedCorners
-                )
-            }
-
-            fullSrc.release()
         }
     }
 
@@ -237,6 +219,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     val cnnDetector = CnnStoneDetector(stoneInterpreterInstance)
                     val stoneResult = cnnDetector.detectStones(rectifiedMat, geometryGrid)
 
+                    // CNN訓練データの出力処理 (確実に実行)
+                    if (DebugConfig.isEnabled && DebugConfig.EXPORT_DATASET_PAIR) {
+                        exportDatasetPair(rectifiedMat, geometryGrid, stoneResult)
+                    }
+
                     _uiState.update { it.copy(isLoading = false, boardLayout = stoneResult) }
                     toastMessage = "碁盤の解析が完了しました"
                 } else {
@@ -252,7 +239,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun processCapturedPhoto(file: File) { loadPhotoForAdjustment(file) }
+    fun processCapturedPhoto(file: File) { loadPhotoForAdjustment(file.absolutePath) }
     fun updateBlackPlayer(name: String) { _uiState.update { it.copy(gameRecord = it.gameRecord.copy(blackPlayer = name)) } }
     fun updateWhitePlayer(name: String) { _uiState.update { it.copy(gameRecord = it.gameRecord.copy(whitePlayer = name)) } }
     fun updateNextPlayer(nextPlayer: String) { _uiState.update { it.copy(gameRecord = it.gameRecord.copy(nextPlayer = nextPlayer)) } }
@@ -305,51 +292,66 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         _uiState.update { it.copy(gameRecord = record, boardLayout = matrix.map { it.toList() }) }
     }
 
-    private fun exportDatasetPair(boardLayout: List<List<StoneColor>>, gameRecord: GameRecord, context: android.content.Context) {
+    /**
+     * CNN訓練データ出力用関数
+     */
+    private fun exportDatasetPair(
+        rectifiedMat: Mat,
+        geometryGrid: Array<Array<Point>>,
+        boardLayout: List<List<StoneColor>>
+    ) {
         try {
-            val sessionId = currentSessionId ?: return
             val downloadsDir = android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DOWNLOADS)
-            val baseDir = File(downloadsDir, "YOLO_Boards")
-            val gameFolder = File(baseDir, sessionId)
-            if (!gameFolder.exists()) gameFolder.mkdirs()
-
-            val csvContent = StringBuilder("row,col,label\n")
-            for (r in 0 until 19) {
-                for (c in 0 until 19) {
-                    val labelNum = when (boardLayout[r][c]) {
-                        StoneColor.EMPTY -> 0
-                        StoneColor.BLACK -> 1
-                        StoneColor.WHITE -> 2
-                    }
-                    csvContent.append("$r,$c,$labelNum\n")
-                }
+            val baseDir = File(downloadsDir, "goban_dataset")
+            val gameId = "game_${System.currentTimeMillis()}"
+            val gameFolder = File(baseDir, gameId)
+            if (!gameFolder.exists()) {
+                gameFolder.mkdirs()
             }
-            File(gameFolder, "labels.csv").writeText(csvContent.toString())
 
-            val blackStones = mutableListOf<Pair<Int, Int>>()
-            val whiteStones = mutableListOf<Pair<Int, Int>>()
+            val patchSize = 40
+            val csvContent = StringBuilder()
+            csvContent.append("filename_base,row,col,label\n")
 
             for (r in 0 until 19) {
                 for (c in 0 until 19) {
-                    when (boardLayout[r][c]) {
-                        StoneColor.BLACK -> blackStones.add(Pair(c, r))
-                        StoneColor.WHITE -> whiteStones.add(Pair(c, r))
-                        else -> {}
+                    val center = geometryGrid[r][c]
+                    val x = center.x.toInt()
+                    val y = center.y.toInt()
+
+                    val half = patchSize / 2
+                    val x1 = (x - half).coerceIn(0, rectifiedMat.cols() - patchSize)
+                    val y1 = (y - half).coerceIn(0, rectifiedMat.rows() - patchSize)
+                    val rect = Rect(x1, y1, patchSize, patchSize)
+
+                    if (rect.width > 0 && rect.height > 0) {
+                        val colorPatch = Mat(rectifiedMat, rect)
+
+                        val filenameBase = "r${r}_c${c}"
+                        val colorFile = File(gameFolder, "${filenameBase}_color.png")
+
+                        Imgcodecs.imwrite(colorFile.absolutePath, colorPatch)
+
+                        val labelNum = when (boardLayout[r][c]) {
+                            StoneColor.EMPTY -> 0
+                            StoneColor.BLACK -> 1
+                            StoneColor.WHITE -> 2
+                        }
+
+                        csvContent.append("$filenameBase,$r,$c,$labelNum\n")
+
+                        colorPatch.release()
                     }
                 }
             }
 
-            val updatedGameRecord = gameRecord.copy(
-                initialBlackStones = blackStones,
-                initialWhiteStones = whiteStones
-            )
+            val csvFile = File(gameFolder, "labels.csv")
+            csvFile.writeText(csvContent.toString())
 
-            val sgfWriter = SgfWriter(context)
-            val sgfString = sgfWriter.generateSgfString(updatedGameRecord)
-            File(gameFolder, "board.sgf").writeText(sgfString)
+            Log.d("DatasetExport", "labels.csv の書き込みが完了しました。サイズ: ${csvFile.length()} バイト")
 
         } catch (e: Exception) {
-            Log.e("DatasetExport", "エラー", e)
+            Log.e("DatasetExport", "データセット出力中にエラーが発生しました", e)
         }
     }
 
@@ -381,23 +383,28 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             val result = sgfWriter.saveSgfFileAutoNamed(sgfString)
 
             result.onSuccess { savedFile ->
-                if (DebugConfig.isEnabled && DebugConfig.EXPORT_DATASET_PAIR) {
-                    exportDatasetPair(currentLayout, updatedGameRecord, context)
-                }
                 if (recipientEmail.isNotBlank()) onFileSaved(savedFile)
             }
         }
     }
 
     companion object {
-        fun saveCroppedBoardToDownload(mat: Mat) {
-            saveCroppedBoardWithSessionId(mat, "debug_aug")
+        fun exportCroppedRectImage(edgeMat: Mat) {
+            if (!DebugConfig.EXPORT_CROPPED_RECT_IMAGE) return
+            try {
+                val baseDir = File(android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DOWNLOADS), "Cropped_Rect")
+                val sampleDir = File(baseDir, "sample_${System.currentTimeMillis()}").apply { if (!exists()) mkdirs() }
+                val resizedMat = Mat()
+                Imgproc.resize(edgeMat, resizedMat, org.opencv.core.Size(256.0, 256.0))
+                Imgcodecs.imwrite(File(sampleDir, "board_binary.png").absolutePath, resizedMat)
+                resizedMat.release()
+            } catch (e: Exception) { Log.e("CroppedRectExport", "エラー", e) }
         }
 
-        fun exportCroppedRectImage(mat: Mat) {
-            saveCroppedBoardWithSessionId(mat, "debug_rect")
-        }
-
+        /**
+         * 最初に撮影した生画像をガイドフレームで切り取ったものを受け取り、
+         * YOLO_Boards/<sessionId>/board_orig.png として保存する
+         */
         fun saveCroppedBoardWithSessionId(mat: Mat, sessionId: String) {
             try {
                 val baseDir = File(android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DOWNLOADS), "YOLO_Boards")
@@ -428,5 +435,24 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 Log.e("OriginalBoardExport", "エラー", e)
             }
         }
+
+        @Deprecated("Replaced by saveCroppedBoardWithSessionId")
+        fun saveCroppedBoardToDownload(mat: Mat) {
+            // 互換性のためのプレースホルダー
+        }
+    }
+
+    fun exportCornerImages(originalMat: Mat, corners: List<org.opencv.core.Point>, gridSpacing: Double) {
+        try {
+            val baseDir = File(android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DOWNLOADS), "Cropped_Corners")
+            val sampleDir = File(baseDir, "corners_${System.currentTimeMillis()}").apply { if (!exists()) mkdirs() }
+            val margin = (gridSpacing * 1.5).toInt()
+            corners.forEachIndexed { i, pt ->
+                val roi = Rect((pt.x - margin).toInt().coerceAtLeast(0), (pt.y - margin).toInt().coerceAtLeast(0), margin * 2, margin * 2)
+                val cropped = originalMat.submat(roi)
+                Imgcodecs.imwrite(File(sampleDir, "corner_${i}.png").absolutePath, cropped)
+                cropped.release()
+            }
+        } catch (e: Exception) { Log.e("CornerExport", "エラー", e) }
     }
 }

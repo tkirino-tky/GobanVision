@@ -8,6 +8,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -58,7 +59,6 @@ fun CornerScreen(
     var activeIndex by remember { mutableStateOf<Int?>(null) }
     var currentTouchPosition by remember { mutableStateOf<Offset?>(null) }
 
-    // 実際の描画サイズをピクセル単位で保持するステート
     var viewWidth by remember { mutableStateOf(0f) }
     var viewHeight by remember { mutableStateOf(0f) }
     val density = LocalDensity.current
@@ -66,7 +66,6 @@ fun CornerScreen(
     val bitmapWidth = bitmap.width.toFloat()
     val bitmapHeight = bitmap.height.toFloat()
 
-    // サイズがまだ決まっていない初期値（0）のときの安全策
     val scale = if (viewWidth > 0f && viewHeight > 0f) {
         minOf(viewWidth / bitmapWidth, viewHeight / bitmapHeight)
     } else {
@@ -78,13 +77,19 @@ fun CornerScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .navigationBarsPadding()
-            .onSizeChanged { size ->
-                viewWidth = size.width.toFloat()
-                viewHeight = size.height.toFloat()
-            }
+            .navigationBarsPadding(),
+        contentAlignment = Alignment.Center
     ) {
-        Box(modifier = Modifier.fillMaxSize()) {
+        // --- 完全な正方形（1:1）のプレビューコンテナ ---
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(1f)
+                .onSizeChanged { size ->
+                    viewWidth = size.width.toFloat()
+                    viewHeight = size.height.toFloat()
+                }
+        ) {
             Image(
                 bitmap = imageBitmap,
                 contentDescription = "Board",
@@ -178,11 +183,11 @@ fun CornerScreen(
                 }
             }
 
+            // 虫眼鏡（ルーペ）の処理
             val index = activeIndex
             val touchPos = currentTouchPosition
             if (index != null && touchPos != null && viewWidth > 0f) {
                 val targetPoint = corners[index]
-
                 val px = targetPoint.x.toInt().coerceIn(0, bitmap.width - 1)
                 val py = targetPoint.y.toInt().coerceIn(0, bitmap.height - 1)
 
@@ -236,17 +241,17 @@ fun CornerScreen(
                     }
                 }
             }
+        }
 
-            // 画面左上の戻るボタン
-            Button(
-                onClick = onBack,
-                modifier = Modifier
-                    .align(Alignment.TopStart)
-                    .padding(16.dp)
-                    .statusBarsPadding()
-            ) {
-                Text("戻る")
-            }
+        // 画面左上の戻るボタン
+        Button(
+            onClick = onBack,
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .padding(16.dp)
+                .statusBarsPadding()
+        ) {
+            Text("戻る")
         }
 
         // 画面下部の判定メッセージと確定ボタン

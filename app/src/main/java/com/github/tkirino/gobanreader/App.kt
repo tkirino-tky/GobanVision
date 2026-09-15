@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -20,6 +21,7 @@ fun App(
     viewModel: MainViewModel? = null,
     onCameraScreenChanged: (Boolean) -> Unit = {}
 ) {
+    val context = LocalContext.current
     val readerViewModel: MainViewModel = viewModel ?: viewModel()
     val uiState by readerViewModel.uiState.collectAsState()
     val navController = rememberNavController()
@@ -34,25 +36,28 @@ fun App(
 
     NavHost(
         navController = navController,
-        startDestination = Route.Settings
+        startDestination = Route.Camera // ① 最初にカメラ画面(CameraScreen)からスタート
     ) {
-        composable<Route.Settings> {
-            SettingScreen(
-                viewModel = readerViewModel,
-                onBlackPlayerChanged = { name -> readerViewModel.updateBlackPlayer(name) },
-                onWhitePlayerChanged = { name -> readerViewModel.updateWhitePlayer(name) },
-                onGetGobanClick = { navController.navigate(Route.Camera) },
-                onHistoryClick = { navController.navigate(Route.History) }
-            )
-        }
         composable<Route.Camera> {
             CameraScreen(
                 viewModel = readerViewModel,
-                onStartReadingClick = { file: File ->
-                    readerViewModel.loadPhotoForAdjustment(file)
+                onDetectionSuccess = {
+                    // ② 碁盤認識が出来た場合は直ちに結果の表示(DisplayScreen)へ移動
+                    navController.navigate(Route.Display)
+                },
+                onManualInputClick = {
+                    // ③ コーナーの手動入力画面(CornerScreen)へ移動
+                    val dummyFile = File(context.cacheDir, "goban_photo.jpg")
+                    readerViewModel.loadPhotoForAdjustment(dummyFile)
                     navController.navigate(Route.Corner)
                 },
-                onBackClick = { navController.popBackStack() }
+                onSettingsClick = {
+                    // ④ 設定画面へ移動
+                    navController.navigate(Route.Settings)
+                },
+                onBackClick = {
+                    navController.popBackStack(Route.Camera, inclusive = false)
+                }
             )
         }
         composable<Route.Corner> {
@@ -66,10 +71,12 @@ fun App(
                     rawDetection = uiState.rawCorners,
                     onConfirmed = { corners ->
                         readerViewModel.processWithCorners(corners)
-                        navController.navigate(Route.Display)
+                        navController.navigate(Route.Display) {
+                            popUpTo(Route.Camera) { inclusive = false }
+                        }
                     },
                     onBack = {
-                        navController.popBackStack(Route.Settings, inclusive = false)
+                        navController.popBackStack(Route.Camera, inclusive = false)
                     }
                 )
             }
@@ -77,8 +84,25 @@ fun App(
         composable<Route.Display> {
             DisplayScreen(
                 readerViewModel,
-                onBackClick = { navController.navigate(Route.Settings) }
+                onBackClick = {
+                    navController.popBackStack(Route.Camera, inclusive = false)
+                }
             )
+        }
+        composable<Route.Settings> {
+            SettingScreen(
+                viewModel = readerViewModel,
+                onBlackPlayerChanged = { name -> readerViewModel.updateBlackPlayer(name) },
+                onWhitePlayerChanged = { name -> readerViewModel.updateWhitePlayer(name) },
+                onGetGobanClick = {
+                    // 設定画面からカメラに戻る場合
+                    navController.popBackStack(Route.Camera, inclusive = false)
+                },
+                onHistoryClick = { navController.navigate(Route.History) }
+            )
+        }
+        composable<Route.History> {
+            // 履歴画面
         }
     }
 }
