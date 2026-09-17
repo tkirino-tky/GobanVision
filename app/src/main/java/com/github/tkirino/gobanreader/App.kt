@@ -48,7 +48,7 @@ fun App(
                 onManualInputClick = {
                     // ③ コーナーの手動入力画面(CornerScreen)へ移動
                     val dummyFile = File(context.cacheDir, "goban_photo.jpg")
-                    readerViewModel.loadPhotoForAdjustment(dummyFile)
+                    readerViewModel.loadPhotoForAdjustment(dummyFile.absolutePath)
                     navController.navigate(Route.Corner)
                 },
                 onSettingsClick = {

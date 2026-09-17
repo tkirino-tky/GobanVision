@@ -26,11 +26,11 @@ import com.github.tkirino.gobanreader.MainViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
 
-// 完全に正方形（1:1）の大きさを強制するTextureView
 class SquareTextureView(context: Context) : TextureView(context) {
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         val width = MeasureSpec.getSize(widthMeasureSpec)
@@ -56,10 +56,12 @@ fun CameraScreen(
     val camera2Manager = remember { Camera2Manager(context) }
     var currentTextureView by remember { mutableStateOf<TextureView?>(null) }
 
+    // ★重複キャプチャ防止用フラグ
+    var isCapturing by remember { mutableStateOf(false) }
+
     val configuration = LocalConfiguration.current
     val screenWidthDp = configuration.screenWidthDp.dp
 
-    // 正方形のビュー枠の中で、カメラ映像をアスペクト比を保って美しくフィットさせる変換
     fun adjustTextureViewTransform(textureView: TextureView, viewWidth: Int, viewHeight: Int) {
         val matrix = Matrix()
         val imageWidth = 1080f
@@ -103,15 +105,19 @@ fun CameraScreen(
         }
     }
 
-    // 撮影＆処理
     fun captureAndProcess() {
+        if (isCapturing) return // ★処理中なら即リターン（連打・重複呼び出しを防止）
+        isCapturing = true
+
         try {
             val textureView = currentTextureView ?: run {
                 Log.e("CameraScreen", "currentTextureViewがnullです")
+                isCapturing = false
                 return
             }
             val bitmap = textureView.bitmap ?: run {
                 Log.e("CameraScreen", "TextureViewからBitmapを取得できませんでした")
+                isCapturing = false
                 return
             }
 
@@ -119,14 +125,12 @@ fun CameraScreen(
             FileOutputStream(file).use { out ->
                 bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out)
             }
-            bitmap.recycle()
 
             Log.d("CameraScreen", "正方形プレビューキャプチャ成功: ${file.absolutePath}")
 
-            // 少しウェイトを入れてファイルの書き込み完了を確実にするとデコード失敗を防げます
-            viewModel.loadPhotoForAdjustment(file) { isGood ->
-                // ★超重要：バックグラウンドから呼ばれるため、必ずメインスレッドに戻して画面遷移する
-                kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Main).launch {
+            viewModel.loadPhotoForAdjustment(file.absolutePath) { isGood ->
+                kotlinx.coroutines.CoroutineScope(Dispatchers.Main).launch {
+                    isCapturing = false
                     if (isGood) {
                         val detectedCorners = viewModel.uiState.value.initialCorners
                         val expanded = com.github.tkirino.gobanreader.utility.CornerUtils.calculateExpandedCorners(detectedCorners)
@@ -135,7 +139,7 @@ fun CameraScreen(
                         viewModel.processWithCorners(expanded)
                         onDetectionSuccess()
                     } else {
-                        Log.d("CameraScreen", "YOLO検出不十分 -> 手動調整画面へ")
+                        Log.d("CameraScreen", "YOLO検出不十分 -> 手動調整画面（CornerScreen）へ")
                         onManualInputClick()
                     }
                 }
@@ -143,6 +147,7 @@ fun CameraScreen(
 
         } catch (e: Exception) {
             Log.e("CameraScreen", "キャプチャ処理中にエラーが発生しました", e)
+            isCapturing = false
         }
     }
 
@@ -151,7 +156,6 @@ fun CameraScreen(
             .fillMaxSize()
             .background(Color.Black)
     ) {
-        // --- 中央の正方形プレビュー領域 ---
         Box(
             modifier = Modifier
                 .size(screenWidthDp, screenWidthDp)
@@ -194,7 +198,6 @@ fun CameraScreen(
             }
         }
 
-        // --- 上部コントロール領域 ---
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -230,7 +233,6 @@ fun CameraScreen(
             }
         }
 
-        // --- 下部コントロール領域（次へボタン） ---
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -240,13 +242,14 @@ fun CameraScreen(
         ) {
             Button(
                 onClick = { captureAndProcess() },
+                enabled = !isCapturing, // ★処理中はボタンを無効化
                 modifier = Modifier
                     .fillMaxWidth(0.8f)
                     .height(56.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)
             ) {
                 Text(
-                    text = "次へ（認識・調整へ進む）",
+                    text = if (isCapturing) "処理中..." else "次へ（認識・調整へ進む）",
                     fontSize = 16.sp,
                     color = Color.White
                 )

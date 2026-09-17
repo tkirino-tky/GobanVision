@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
@@ -19,24 +20,27 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.github.tkirino.gobanreader.MainViewModel
-import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.ui.Alignment
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.github.tkirino.gobanreader.MainViewModel
+import com.github.tkirino.gobanreader.utility.PreferencesManager
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,9 +55,18 @@ fun SettingScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val nextPlayer = uiState.gameRecord.nextPlayer.ifEmpty { "B" }
     val keyboardController = LocalSoftwareKeyboardController.current
+    val context = LocalContext.current
 
     var isHandicapExpanded by remember { mutableStateOf(false) }
     var isKomiExpanded by remember { mutableStateOf(false) }
+
+    // 保存済みの送信先メールアドレスを保持・管理
+    var recipientEmail by remember { mutableStateOf("") }
+
+    // PreferencesManagerの関数名に合わせて修正 (getSavedEmail)
+    LaunchedEffect(Unit) {
+        recipientEmail = PreferencesManager.getSavedEmail(context)
+    }
 
     val handicapOptions = listOf(0, 2, 3, 4, 5, 6, 7, 8, 9)
     val komiOptions = listOf(
@@ -71,7 +84,6 @@ fun SettingScreen(
     ) {
         Spacer(modifier = Modifier.height(12.dp))
 
-        // 【改善】サイズを大きくし、中央配置に修正
         Text(
             text = "GobanReader",
             style = MaterialTheme.typography.displaySmall.copy(
@@ -216,10 +228,7 @@ fun SettingScreen(
             onValueChange = { onBlackPlayerChanged(it) },
             label = { Text("黒番の対局者名 (省略可)") },
             singleLine = true,
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-            keyboardActions = KeyboardActions(
-                onDone = { keyboardController?.hide() }
-            ),
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -229,7 +238,23 @@ fun SettingScreen(
             onValueChange = { onWhitePlayerChanged(it) },
             label = { Text("白番の対局者名 (省略可)") },
             singleLine = true,
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        // SGF送信先デフォルトメールアドレス入力欄
+        OutlinedTextField(
+            value = recipientEmail,
+            onValueChange = { newEmail ->
+                recipientEmail = newEmail
+                PreferencesManager.saveEmail(context, newEmail)
+            },
+            label = { Text("SGF送信先メールアドレス (省略可)") },
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Email,
+                imeAction = ImeAction.Done
+            ),
             keyboardActions = KeyboardActions(
                 onDone = { keyboardController?.hide() }
             ),

@@ -39,10 +39,6 @@ class YoloCornerDetector(private val interpreter: Interpreter) {
             Imgproc.resize(croppedBoard, resizedBoard, Size(640.0, 640.0))
             croppedBoard.release()
 
-            if (DebugConfig.EXPORT_CROPPED_RECT_IMAGE) {
-                MainViewModel.exportCroppedRectImage(resizedBoard)
-            }
-
             // 入力バッファの作成 (1, 640, 640, 3) Float32 [0.0 - 1.0]
             val inputBuffer = convertMatToByteBuffer(resizedBoard)
             resizedBoard.release()

@@ -30,6 +30,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -38,6 +40,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.github.tkirino.gobanreader.MainViewModel
 import com.github.tkirino.gobanreader.utility.CornerUtils
@@ -66,21 +69,23 @@ fun CornerScreen(
     val bitmapWidth = bitmap.width.toFloat()
     val bitmapHeight = bitmap.height.toFloat()
 
-    val scale = if (viewWidth > 0f && viewHeight > 0f) {
-        minOf(viewWidth / bitmapWidth, viewHeight / bitmapHeight)
+    // ★ Crop(枠いっぱいに拡大表示)に合わせた正確なスケールとオフセット計算
+    val scale = if (viewWidth > 0f && viewHeight > 0f && bitmapWidth > 0f && bitmapHeight > 0f) {
+        maxOf(viewWidth / bitmapWidth, viewHeight / bitmapHeight)
     } else {
         1f
     }
-    val offsetX = if (viewWidth > 0f) (viewWidth - bitmapWidth * scale) / 2 else 0f
-    val offsetY = if (viewHeight > 0f) (viewHeight - bitmapHeight * scale) / 2 else 0f
+    val offsetX = (viewWidth - bitmapWidth * scale) / 2f
+    val offsetY = (viewHeight - bitmapHeight * scale) / 2f
 
     Box(
         modifier = Modifier
             .fillMaxSize()
+            .background(Color.Black)
             .navigationBarsPadding(),
         contentAlignment = Alignment.Center
     ) {
-        // --- 完全な正方形（1:1）のプレビューコンテナ ---
+        // --- プレビュー表示（正方形 1:1 コンテナ） ---
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -94,13 +99,13 @@ fun CornerScreen(
                 bitmap = imageBitmap,
                 contentDescription = "Board",
                 modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Fit
+                contentScale = ContentScale.Crop
             )
 
             Canvas(
                 modifier = Modifier
                     .fillMaxSize()
-                    .pointerInput(Unit) {
+                    .pointerInput(scale, offsetX, offsetY, corners) {
                         detectDragGestures(
                             onDragStart = { touchPoint ->
                                 if (scale == 0f) return@detectDragGestures
@@ -118,7 +123,7 @@ fun CornerScreen(
                                 if (scale == 0f) return@detectDragGestures
                                 currentTouchPosition = change.position
 
-                                val sensitivity = 0.3f
+                                val sensitivity = 0.5f
                                 val deltaX = (dragAmount.x.toDouble() / scale) * sensitivity
                                 val deltaY = (dragAmount.y.toDouble() / scale) * sensitivity
 
@@ -143,20 +148,25 @@ fun CornerScreen(
                     }
             ) {
                 if (scale == 0f) return@Canvas
+
                 fun toOffset(p: Point) = Offset(
-                    (p.x.toFloat() * scale) + offsetX.toFloat(),
-                    (p.y.toFloat() * scale) + offsetY.toFloat()
+                    (p.x.toFloat() * scale) + offsetX,
+                    (p.y.toFloat() * scale) + offsetY
                 )
 
+                // 枠線の描画
                 for (i in corners.indices) {
-                    drawLine(
-                        color = Color.Green,
-                        strokeWidth = 5f,
-                        start = toOffset(corners[i]),
-                        end = toOffset(corners[(i + 1) % 4])
-                    )
+                    if (corners.isNotEmpty()) {
+                        drawLine(
+                            color = Color.Green,
+                            strokeWidth = 5f,
+                            start = toOffset(corners[i]),
+                            end = toOffset(corners[(i + 1) % corners.size])
+                        )
+                    }
                 }
 
+                // コーナーマーカーの描画
                 val markerRadius = 25f
                 val crossHairLength = 40f
                 val strokeWidth = 4f
@@ -183,61 +193,42 @@ fun CornerScreen(
                 }
             }
 
-            // 虫眼鏡（ルーペ）の処理
+            // --- 軽量化した虫眼鏡（ルーペ） ---
             val index = activeIndex
             val touchPos = currentTouchPosition
-            if (index != null && touchPos != null && viewWidth > 0f) {
+            if (index != null && touchPos != null && viewWidth > 0f && corners.indices.contains(index)) {
                 val targetPoint = corners[index]
-                val px = targetPoint.x.toInt().coerceIn(0, bitmap.width - 1)
-                val py = targetPoint.y.toInt().coerceIn(0, bitmap.height - 1)
+                val cropSize = 180f
+                val halfCrop = cropSize / 2f
 
-                val cropSize = 180
-                val halfCrop = cropSize / 2
-                val startX = (px - halfCrop).coerceIn(0, bitmap.width - cropSize)
-                val startY = (py - halfCrop).coerceIn(0, bitmap.height - cropSize)
-                val actualWidth = minOf(cropSize, bitmap.width - startX)
-                val actualHeight = minOf(cropSize, bitmap.height - startY)
+                val srcX = (targetPoint.x.toFloat() - halfCrop).coerceIn(0f, bitmapWidth - cropSize).toInt()
+                val srcY = (targetPoint.y.toFloat() - halfCrop).coerceIn(0f, bitmapHeight - cropSize).toInt()
 
-                if (actualWidth > 0 && actualHeight > 0) {
-                    val croppedMagnifiedBitmap = remember(targetPoint, bitmap) {
-                        try {
-                            Bitmap.createBitmap(bitmap, startX, startY, actualWidth, actualHeight)
-                        } catch (e: Exception) {
-                            null
-                        }
-                    }
+                val loupeSizeDp = 130.dp
+                val loupeSizePx = with(density) { loupeSizeDp.toPx() }
+                val loupeX = (touchPos.x - loupeSizePx / 2).coerceIn(0f, viewWidth - loupeSizePx)
+                val loupeY = (touchPos.y - loupeSizePx - 100f).coerceIn(0f, viewHeight - loupeSizePx)
 
-                    if (croppedMagnifiedBitmap != null) {
-                        val magnifiedImageBitmap = remember(croppedMagnifiedBitmap) {
-                            croppedMagnifiedBitmap.asImageBitmap()
-                        }
-
-                        val loupeSizeDp = 130.dp
-                        val loupeSizePx = with(density) { loupeSizeDp.toPx() }
-                        val loupeX = (touchPos.x - loupeSizePx / 2).coerceIn(0f, viewWidth - loupeSizePx)
-                        val loupeY = (touchPos.y - loupeSizePx - 100f).coerceIn(0f, viewHeight - loupeSizePx)
-
-                        Box(
-                            modifier = Modifier
-                                .offset { IntOffset(loupeX.roundToInt(), loupeY.roundToInt()) }
-                                .size(loupeSizeDp)
-                                .clip(CircleShape)
-                                .background(Color.White)
-                                .border(3.dp, Color.Red, CircleShape),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Image(
-                                bitmap = magnifiedImageBitmap,
-                                contentDescription = "Magnifier",
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.FillBounds
-                            )
-                            Canvas(modifier = Modifier.fillMaxSize()) {
-                                val center = Offset(size.width / 2, size.height / 2)
-                                drawLine(Color.Red, Offset(center.x - 30f, center.y), Offset(center.x + 30f, center.y), 4f)
-                                drawLine(Color.Red, Offset(center.x, center.y - 30f), Offset(center.x, center.y + 30f), 4f)
-                            }
-                        }
+                Box(
+                    modifier = Modifier
+                        .offset { IntOffset(loupeX.roundToInt(), loupeY.roundToInt()) }
+                        .size(loupeSizeDp)
+                        .clip(CircleShape)
+                        .background(Color.White)
+                        .border(3.dp, Color.Red, CircleShape)
+                ) {
+                    Canvas(modifier = Modifier.fillMaxSize()) {
+                        // Bitmap作成を行わず、直接Canvas上で元画像の一部を拡大描画（高速化）
+                        drawImage(
+                            image = imageBitmap,
+                            srcOffset = IntOffset(srcX, srcY),
+                            srcSize = IntSize(cropSize.toInt(), cropSize.toInt()),
+                            dstOffset = IntOffset.Zero,
+                            dstSize = IntSize(size.width.toInt(), size.height.toInt())
+                        )
+                        val center = Offset(size.width / 2, size.height / 2)
+                        drawLine(Color.Red, Offset(center.x - 30f, center.y), Offset(center.x + 30f, center.y), 4f)
+                        drawLine(Color.Red, Offset(center.x, center.y - 30f), Offset(center.x, center.y + 30f), 4f)
                     }
                 }
             }
