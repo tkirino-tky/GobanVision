@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.opencv.android.Utils
+import org.opencv.core.Core
 import org.opencv.core.Mat
 import org.opencv.core.Point
 import org.opencv.core.Rect
@@ -32,7 +33,6 @@ import org.opencv.imgproc.Imgproc
 import org.tensorflow.lite.Interpreter
 import java.io.File
 import java.io.FileInputStream
-import java.io.FileOutputStream
 import java.nio.channels.FileChannel
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
@@ -102,16 +102,31 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun loadPhotoForAdjustment(photoPath: String, onResult: (Boolean) -> Unit = {}) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val fullSrc = Imgcodecs.imread(photoPath)
-                if (fullSrc.empty()) {
+                val rawSrc = Imgcodecs.imread(photoPath)
+                if (rawSrc.empty()) {
                     Log.e("MainViewModel", "画像の読み込みに失敗しました: $photoPath")
                     withContext(Dispatchers.Main) { onResult(false) }
                     return@launch
                 }
 
+                val imgCols = rawSrc.cols()
+                val imgRows = rawSrc.rows()
+
+                // ★根本解決: 縦長画像の中央から正方形(1:1)を正確に切り出す
+                val squareSize = minOf(imgCols, imgRows)
+                val startX = (imgCols - squareSize) / 2
+                val startY = (imgRows - squareSize) / 2 // 上端(0)ではなく「中央」から切る
+
+                val guideRect = Rect(startX, startY, squareSize, squareSize)
+
+                // 完全にカメラ表示と同じ「中央正方形」の Mat を生成
+                val fullSrc = Mat(rawSrc, guideRect).clone()
+                rawSrc.release()
+
                 lastSourceMat?.release()
                 lastSourceMat = fullSrc.clone()
 
+                // 画面表示用 Bitmap も「中央正方形 Mat」から作成
                 val rgbMat = Mat()
                 Imgproc.cvtColor(fullSrc, rgbMat, Imgproc.COLOR_BGR2RGB)
                 val bmp = android.graphics.Bitmap.createBitmap(rgbMat.cols(), rgbMat.rows(), android.graphics.Bitmap.Config.ARGB_8888)
@@ -120,58 +135,37 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
                 _uiState.update { it.copy(adjustmentBitmap = bmp) }
 
-                val imgCols = fullSrc.cols()
-                val imgRows = fullSrc.rows()
-
-                // ★正方形（1:1）の切り出し範囲（guideRect）を正確に計算
-                val squareSize = minOf(imgCols, imgRows)
-                val startX = (imgCols - squareSize) / 2
-                val startY = (imgRows - squareSize) / 2
-
-                val guideRect = Rect(
-                    startX.coerceIn(0, imgCols - 1),
-                    startY.coerceIn(0, imgRows - 1),
-                    squareSize.coerceAtMost(imgCols - startX),
-                    squareSize.coerceAtMost(imgRows - startY)
-                )
-
                 // ⚠️ 【聖域・削除変更厳禁】YOLO訓練データ出力
                 val currentTime = System.currentTimeMillis()
-                val isTemporaryCapture = photoPath.contains("captured_board.jpg")
 
                 if (DebugConfig.YOLO_TRAINING_DATA_EXPORT) {
-                    // 1回目（captured_board.jpg：プレビュー由来のキャプチャ）はスキップし、
-                    // 2回目に届く本物の写真ファイル（かつ直近3秒以内の重複なし）のみを出力する
-                    if (!isTemporaryCapture && (currentTime - lastYoloExportTime > 3000L)) {
+                    if (currentTime - lastYoloExportTime > 1500L) {
                         lastYoloExportTime = currentTime
                         currentSessionId = "session_$currentTime"
 
-                        val croppedBoard = Mat(fullSrc, guideRect)
-                        exportYOLOTrainingData(croppedBoard, currentSessionId!!)
-                        croppedBoard.release()
+                        exportYOLOTrainingData(fullSrc, currentSessionId!!)
                         Log.d("MainViewModel", "本物の正方形(1:1)YOLO訓練データを正常出力しました: $currentSessionId")
-                    } else if (isTemporaryCapture) {
-                        Log.d("MainViewModel", "キャプチャ用一時画像のためYOLO出力をスキップしました: $photoPath")
-                    } else {
-                        Log.d("MainViewModel", "重複出力防止のためスキップしました: $photoPath")
                     }
                 }
 
                 val detector = yoloCornerDetector
-                val detectionResult = detector?.detectCorners(fullSrc, guideRect)
+                val detectionResult = detector?.detectCorners(fullSrc, Rect(0, 0, squareSize, squareSize))
+
+                val sizeD = squareSize.toDouble()
+                val margin = sizeD * 0.08
 
                 val defaultCorners = listOf(
-                    Point(startX.toDouble(), startY.toDouble()),
-                    Point((startX + squareSize).toDouble(), startY.toDouble()),
-                    Point((startX + squareSize).toDouble(), (startY + squareSize).toDouble()),
-                    Point(startX.toDouble(), (startY + squareSize).toDouble())
+                    Point(margin, margin),
+                    Point(sizeD - margin, margin),
+                    Point(sizeD - margin, sizeD - margin),
+                    Point(margin, sizeD - margin)
                 )
 
                 withContext(Dispatchers.Main) {
                     isCornerQualityGood = false
                     cornerQualityMessage = "手動でコーナーの位置を補正してください"
 
-                    val initialCorners = if (detectionResult != null && detectionResult.corners.isNotEmpty()) {
+                    val initialCorners = if (detectionResult != null && detectionResult.corners.size == 4) {
                         detectionResult.corners
                     } else {
                         defaultCorners
@@ -342,6 +336,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     // ⚠️ 【聖域・削除変更厳禁】YOLO訓練データ出力
+    // ⚠️ 【聖域・削除変更厳禁】YOLO訓練データ出力
     private fun exportYOLOTrainingData(mat: Mat, sessionId: String) {
         try {
             val baseDir = File(
@@ -350,27 +345,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             )
             val sampleDir = File(baseDir, sessionId).apply { if (!exists()) mkdirs() }
 
-            val rgbMat = Mat()
-            if (mat.channels() == 3) {
-                Imgproc.cvtColor(mat, rgbMat, Imgproc.COLOR_BGR2RGB)
-            } else if (mat.channels() == 4) {
-                Imgproc.cvtColor(mat, rgbMat, Imgproc.COLOR_BGRA2RGBA)
-            } else {
-                mat.copyTo(rgbMat)
-            }
-            val bmp = android.graphics.Bitmap.createBitmap(
-                rgbMat.cols(),
-                rgbMat.rows(),
-                android.graphics.Bitmap.Config.ARGB_8888
-            )
-            org.opencv.android.Utils.matToBitmap(rgbMat, bmp)
-            rgbMat.release()
-
+            // ★修正: Bitmapへの変換を行わず、OpenCVで正方形Matを直接PNG出力（潰れ・歪みを完全に防止）
             val file = File(sampleDir, "board_orig.png")
-            FileOutputStream(file).use { stream ->
-                bmp.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, stream)
+            val success = Imgcodecs.imwrite(file.absolutePath, mat)
+
+            if (success) {
+                Log.d("MainViewModel", "YOLO訓練データ(PNG)を正方形で正常出力しました: ${file.absolutePath}")
+            } else {
+                Log.e("MainViewModel", "YOLO訓練データの保存に失敗しました: ${file.absolutePath}")
             }
-            bmp.recycle()
         } catch (e: Exception) {
             Log.e("OriginalBoardExport", "エラー", e)
         }

@@ -56,7 +56,7 @@ fun CameraScreen(
     val camera2Manager = remember { Camera2Manager(context) }
     var currentTextureView by remember { mutableStateOf<TextureView?>(null) }
 
-    // ★重複キャプチャ防止用フラグ
+    // 重複キャプチャ防止用フラグ
     var isCapturing by remember { mutableStateOf(false) }
 
     val configuration = LocalConfiguration.current
@@ -64,21 +64,23 @@ fun CameraScreen(
 
     fun adjustTextureViewTransform(textureView: TextureView, viewWidth: Int, viewHeight: Int) {
         val matrix = Matrix()
+
+        // カメラの入力アスペクト比（縦長 3:4）
         val imageWidth = 1080f
         val imageHeight = 1440f
 
         val viewRatio = viewWidth.toFloat() / viewHeight.toFloat()
         val imageRatio = imageWidth / imageHeight
 
-        var scaleX = 1.0f
-        var scaleY = 1.0f
+        val scaleX: Float
+        val scaleY: Float
 
-        if (imageRatio > viewRatio) {
-            scaleX = imageRatio / viewRatio
-            scaleY = 1.0f
-        } else {
+        if (imageRatio < viewRatio) {
             scaleX = 1.0f
             scaleY = viewRatio / imageRatio
+        } else {
+            scaleX = imageRatio / viewRatio
+            scaleY = 1.0f
         }
 
         matrix.setScale(scaleX, scaleY, viewWidth / 2f, viewHeight / 2f)
@@ -106,27 +108,53 @@ fun CameraScreen(
     }
 
     fun captureAndProcess() {
-        if (isCapturing) return // ★処理中なら即リターン（連打・重複呼び出しを防止）
+        if (isCapturing) return
         isCapturing = true
 
         try {
             val textureView = currentTextureView ?: run {
-                Log.e("CameraScreen", "currentTextureViewがnullです")
-                isCapturing = false
-                return
-            }
-            val bitmap = textureView.bitmap ?: run {
-                Log.e("CameraScreen", "TextureViewからBitmapを取得できませんでした")
                 isCapturing = false
                 return
             }
 
-            val file = File(context.cacheDir, "captured_board.jpg")
+            val viewWidth = textureView.width
+            val viewHeight = textureView.height
+
+            if (viewWidth <= 0 || viewHeight <= 0) {
+                isCapturing = false
+                return
+            }
+
+            // TextureViewに適用されているTransform Matrixを取得し、そのままBitmapに適用して生成
+            val transformMatrix = Matrix()
+            textureView.getTransform(transformMatrix)
+
+            val rawBitmap = textureView.bitmap ?: run {
+                isCapturing = false
+                return
+            }
+
+            // 画面表示と同じMatrixを適用して、正しく補正されたBitmapを作成
+            val bitmap = Bitmap.createBitmap(
+                rawBitmap,
+                0,
+                0,
+                rawBitmap.width,
+                rawBitmap.height,
+                transformMatrix,
+                true
+            )
+
+            if (rawBitmap != bitmap && !rawBitmap.isRecycled) {
+                rawBitmap.recycle()
+            }
+
+            // PNG形式でファイル保存
+            val timestamp = System.currentTimeMillis()
+            val file = File(context.cacheDir, "board_capture_$timestamp.png")
             FileOutputStream(file).use { out ->
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out)
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
             }
-
-            Log.d("CameraScreen", "正方形プレビューキャプチャ成功: ${file.absolutePath}")
 
             viewModel.loadPhotoForAdjustment(file.absolutePath) { isGood ->
                 kotlinx.coroutines.CoroutineScope(Dispatchers.Main).launch {
@@ -134,19 +162,16 @@ fun CameraScreen(
                     if (isGood) {
                         val detectedCorners = viewModel.uiState.value.initialCorners
                         val expanded = com.github.tkirino.gobanreader.utility.CornerUtils.calculateExpandedCorners(detectedCorners)
-
-                        Log.d("CameraScreen", "YOLO自動検出成功 -> CNN石認識を実行してDisplayScreenへ")
                         viewModel.processWithCorners(expanded)
                         onDetectionSuccess()
                     } else {
-                        Log.d("CameraScreen", "YOLO検出不十分 -> 手動調整画面（CornerScreen）へ")
                         onManualInputClick()
                     }
                 }
             }
 
         } catch (e: Exception) {
-            Log.e("CameraScreen", "キャプチャ処理中にエラーが発生しました", e)
+            Log.e("CameraScreen", "キャプチャ処理エラー", e)
             isCapturing = false
         }
     }
@@ -242,7 +267,7 @@ fun CameraScreen(
         ) {
             Button(
                 onClick = { captureAndProcess() },
-                enabled = !isCapturing, // ★処理中はボタンを無効化
+                enabled = !isCapturing,
                 modifier = Modifier
                     .fillMaxWidth(0.8f)
                     .height(56.dp),

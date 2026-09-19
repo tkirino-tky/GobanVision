@@ -6,32 +6,17 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -69,14 +54,7 @@ fun CornerScreen(
     val bitmapWidth = bitmap.width.toFloat()
     val bitmapHeight = bitmap.height.toFloat()
 
-    // ★ Crop(枠いっぱいに拡大表示)に合わせた正確なスケールとオフセット計算
-    val scale = if (viewWidth > 0f && viewHeight > 0f && bitmapWidth > 0f && bitmapHeight > 0f) {
-        maxOf(viewWidth / bitmapWidth, viewHeight / bitmapHeight)
-    } else {
-        1f
-    }
-    val offsetX = (viewWidth - bitmapWidth * scale) / 2f
-    val offsetY = (viewHeight - bitmapHeight * scale) / 2f
+    val scale = if (viewWidth > 0f && bitmapWidth > 0f) viewWidth / bitmapWidth else 1f
 
     Box(
         modifier = Modifier
@@ -85,7 +63,6 @@ fun CornerScreen(
             .navigationBarsPadding(),
         contentAlignment = Alignment.Center
     ) {
-        // --- プレビュー表示（正方形 1:1 コンテナ） ---
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -99,18 +76,18 @@ fun CornerScreen(
                 bitmap = imageBitmap,
                 contentDescription = "Board",
                 modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop
+                contentScale = ContentScale.FillBounds
             )
 
             Canvas(
                 modifier = Modifier
                     .fillMaxSize()
-                    .pointerInput(scale, offsetX, offsetY, corners) {
+                    .pointerInput(scale) {
                         detectDragGestures(
                             onDragStart = { touchPoint ->
                                 if (scale == 0f) return@detectDragGestures
-                                val rawX = (touchPoint.x.toDouble() - offsetX) / scale
-                                val rawY = (touchPoint.y.toDouble() - offsetY) / scale
+                                val rawX = touchPoint.x.toDouble() / scale
+                                val rawY = touchPoint.y.toDouble() / scale
 
                                 activeIndex = corners.indices.minByOrNull { i ->
                                     val c = corners[i]
@@ -121,19 +98,22 @@ fun CornerScreen(
                             onDrag = { change, dragAmount ->
                                 val index = activeIndex ?: return@detectDragGestures
                                 if (scale == 0f) return@detectDragGestures
+                                change.consume()
+
                                 currentTouchPosition = change.position
 
-                                val sensitivity = 0.5f
+                                // ★手ぶれ・微振動を吸収するための感度調整(0.6f)
+                                val sensitivity = 0.6f
                                 val deltaX = (dragAmount.x.toDouble() / scale) * sensitivity
                                 val deltaY = (dragAmount.y.toDouble() / scale) * sensitivity
 
                                 val newCorners = corners.toMutableList()
                                 val current = newCorners[index]
 
-                                newCorners[index] = Point(
-                                    (current.x + deltaX).coerceIn(0.0, bitmapWidth.toDouble()),
-                                    (current.y + deltaY).coerceIn(0.0, bitmapHeight.toDouble())
-                                )
+                                val nextX = (current.x + deltaX).coerceIn(0.0, bitmapWidth.toDouble())
+                                val nextY = (current.y + deltaY).coerceIn(0.0, bitmapHeight.toDouble())
+
+                                newCorners[index] = Point(nextX, nextY)
                                 corners = newCorners
                             },
                             onDragEnd = {
@@ -150,11 +130,10 @@ fun CornerScreen(
                 if (scale == 0f) return@Canvas
 
                 fun toOffset(p: Point) = Offset(
-                    (p.x.toFloat() * scale) + offsetX,
-                    (p.y.toFloat() * scale) + offsetY
+                    p.x.toFloat() * scale,
+                    p.y.toFloat() * scale
                 )
 
-                // 枠線の描画
                 for (i in corners.indices) {
                     if (corners.isNotEmpty()) {
                         drawLine(
@@ -166,7 +145,6 @@ fun CornerScreen(
                     }
                 }
 
-                // コーナーマーカーの描画
                 val markerRadius = 25f
                 val crossHairLength = 40f
                 val strokeWidth = 4f
@@ -193,21 +171,23 @@ fun CornerScreen(
                 }
             }
 
-            // --- 軽量化した虫眼鏡（ルーペ） ---
+            // --- 虫眼鏡（ルーペ）：なめらか追従・表示調整 ---
             val index = activeIndex
             val touchPos = currentTouchPosition
             if (index != null && touchPos != null && viewWidth > 0f && corners.indices.contains(index)) {
                 val targetPoint = corners[index]
-                val cropSize = 180f
+                val cropSize = 140f // より拡大率を上げて見やすく調整
                 val halfCrop = cropSize / 2f
 
-                val srcX = (targetPoint.x.toFloat() - halfCrop).coerceIn(0f, bitmapWidth - cropSize).toInt()
-                val srcY = (targetPoint.y.toFloat() - halfCrop).coerceIn(0f, bitmapHeight - cropSize).toInt()
+                val srcX = (targetPoint.x.toFloat() - halfCrop).coerceIn(0f, (bitmapWidth - cropSize).coerceAtLeast(0f)).toInt()
+                val srcY = (targetPoint.y.toFloat() - halfCrop).coerceIn(0f, (bitmapHeight - cropSize).coerceAtLeast(0f)).toInt()
 
-                val loupeSizeDp = 130.dp
+                val loupeSizeDp = 140.dp
                 val loupeSizePx = with(density) { loupeSizeDp.toPx() }
+
+                // 指で隠れないように少し高めの位置(110f上)へオフセット表示
                 val loupeX = (touchPos.x - loupeSizePx / 2).coerceIn(0f, viewWidth - loupeSizePx)
-                val loupeY = (touchPos.y - loupeSizePx - 100f).coerceIn(0f, viewHeight - loupeSizePx)
+                val loupeY = (touchPos.y - loupeSizePx - 110f).coerceIn(0f, viewHeight - loupeSizePx)
 
                 Box(
                     modifier = Modifier
@@ -218,7 +198,6 @@ fun CornerScreen(
                         .border(3.dp, Color.Red, CircleShape)
                 ) {
                     Canvas(modifier = Modifier.fillMaxSize()) {
-                        // Bitmap作成を行わず、直接Canvas上で元画像の一部を拡大描画（高速化）
                         drawImage(
                             image = imageBitmap,
                             srcOffset = IntOffset(srcX, srcY),
@@ -234,7 +213,6 @@ fun CornerScreen(
             }
         }
 
-        // 画面左上の戻るボタン
         Button(
             onClick = onBack,
             modifier = Modifier
@@ -245,7 +223,6 @@ fun CornerScreen(
             Text("戻る")
         }
 
-        // 画面下部の判定メッセージと確定ボタン
         Column(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
