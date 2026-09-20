@@ -135,14 +135,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
                 _uiState.update { it.copy(adjustmentBitmap = bmp) }
 
-                // ⚠️ 【聖域・削除変更厳禁】YOLO訓練データ出力
                 val currentTime = System.currentTimeMillis()
 
+                // ⚠️ 【聖域・削除変更厳禁】YOLO訓練データ出力
                 if (DebugConfig.YOLO_TRAINING_DATA_EXPORT) {
                     if (currentTime - lastYoloExportTime > 1500L) {
                         lastYoloExportTime = currentTime
                         currentSessionId = "session_$currentTime"
-
                         exportYOLOTrainingData(fullSrc, currentSessionId!!)
                         Log.d("MainViewModel", "本物の正方形(1:1)YOLO訓練データを正常出力しました: $currentSessionId")
                     }
