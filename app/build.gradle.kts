@@ -48,8 +48,8 @@ android {
     }
 
     // .tflite モデルがビルド時に二重圧縮されるのを防ぐ設定
-    aaptOptions {
-        noCompress("tflite")
+    androidResources {
+        noCompress += "tflite"
     }
 
     packaging {
@@ -98,7 +98,8 @@ dependencies {
     implementation("org.opencv:opencv:4.10.0")
 
     // --- TensorFlow Lite ---
-    implementation("org.tensorflow:tensorflow-lite:2.14.0")
+    implementation("com.google.ai.edge.litert:litert:1.0.1")
+
     // 必要に応じてGPU支援を使う場合は有効化してください
     // implementation("org.tensorflow:tensorflow-lite-gpu:2.14.0")
 }

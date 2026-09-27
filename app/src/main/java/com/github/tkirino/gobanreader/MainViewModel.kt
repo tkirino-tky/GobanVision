@@ -147,8 +147,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     }
                 }
 
-                val detector = yoloCornerDetector
-                val detectionResult = detector?.detectCorners(fullSrc, Rect(0, 0, squareSize, squareSize))
+                // クラスで保持している yoloCornerDetector を直接呼び出す
+                val detectionResult = yoloCornerDetector?.detectCorners(fullSrc, Rect(0, 0, squareSize, squareSize))
 
                 val sizeD = squareSize.toDouble()
                 val margin = sizeD * 0.08

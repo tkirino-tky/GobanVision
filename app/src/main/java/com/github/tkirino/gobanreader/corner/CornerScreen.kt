@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import com.github.tkirino.gobanreader.MainViewModel
 import com.github.tkirino.gobanreader.utility.CornerUtils
 import org.opencv.core.Point
+import kotlin.math.hypot
 import kotlin.math.roundToInt
 
 @Composable
@@ -47,6 +48,9 @@ fun CornerScreen(
     var activeIndex by remember { mutableStateOf<Int?>(null) }
     var currentTouchPosition by remember { mutableStateOf<Offset?>(null) }
 
+    // 画面全体および画像表示領域のサイズ計測
+    var screenWidth by remember { mutableStateOf(0f) }
+    var screenHeight by remember { mutableStateOf(0f) }
     var viewWidth by remember { mutableStateOf(0f) }
     var viewHeight by remember { mutableStateOf(0f) }
     val density = LocalDensity.current
@@ -60,7 +64,11 @@ fun CornerScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black)
-            .navigationBarsPadding(),
+            .navigationBarsPadding()
+            .onSizeChanged { size ->
+                screenWidth = size.width.toFloat()
+                screenHeight = size.height.toFloat()
+            },
         contentAlignment = Alignment.Center
     ) {
         Box(
@@ -102,19 +110,22 @@ fun CornerScreen(
 
                                 currentTouchPosition = change.position
 
-                                // ★手ぶれ・微振動を吸収するための感度調整(0.6f)
-                                val sensitivity = 0.6f
-                                val deltaX = (dragAmount.x.toDouble() / scale) * sensitivity
-                                val deltaY = (dragAmount.y.toDouble() / scale) * sensitivity
+                                // 手振れ吸収デッドゾーン（小さなブレを無視）と繊細な移動感度(0.25f)
+                                val dragDistance = hypot(dragAmount.x, dragAmount.y)
+                                if (dragDistance > 1.5f) {
+                                    val sensitivity = 0.25f
+                                    val deltaX = (dragAmount.x.toDouble() / scale) * sensitivity
+                                    val deltaY = (dragAmount.y.toDouble() / scale) * sensitivity
 
-                                val newCorners = corners.toMutableList()
-                                val current = newCorners[index]
+                                    val newCorners = corners.toMutableList()
+                                    val current = newCorners[index]
 
-                                val nextX = (current.x + deltaX).coerceIn(0.0, bitmapWidth.toDouble())
-                                val nextY = (current.y + deltaY).coerceIn(0.0, bitmapHeight.toDouble())
+                                    val nextX = (current.x + deltaX).coerceIn(0.0, bitmapWidth.toDouble())
+                                    val nextY = (current.y + deltaY).coerceIn(0.0, bitmapHeight.toDouble())
 
-                                newCorners[index] = Point(nextX, nextY)
-                                corners = newCorners
+                                    newCorners[index] = Point(nextX, nextY)
+                                    corners = newCorners
+                                }
                             },
                             onDragEnd = {
                                 activeIndex = null
@@ -171,12 +182,12 @@ fun CornerScreen(
                 }
             }
 
-            // --- 虫眼鏡（ルーペ）：なめらか追従・表示調整 ---
+            // --- 虫眼鏡（ルーペ）：座標制限解除・動的配置・微調整最適化 ---
             val index = activeIndex
             val touchPos = currentTouchPosition
             if (index != null && touchPos != null && viewWidth > 0f && corners.indices.contains(index)) {
                 val targetPoint = corners[index]
-                val cropSize = 140f // より拡大率を上げて見やすく調整
+                val cropSize = 120f
                 val halfCrop = cropSize / 2f
 
                 val srcX = (targetPoint.x.toFloat() - halfCrop).coerceIn(0f, (bitmapWidth - cropSize).coerceAtLeast(0f)).toInt()
@@ -185,9 +196,16 @@ fun CornerScreen(
                 val loupeSizeDp = 140.dp
                 val loupeSizePx = with(density) { loupeSizeDp.toPx() }
 
-                // 指で隠れないように少し高めの位置(110f上)へオフセット表示
+                // 指が画面下部（盤面下側）にある場合は、虫眼鏡を指の上に配置しきれないため指の下へ退避
                 val loupeX = (touchPos.x - loupeSizePx / 2).coerceIn(0f, viewWidth - loupeSizePx)
-                val loupeY = (touchPos.y - loupeSizePx - 110f).coerceIn(0f, viewHeight - loupeSizePx)
+                val preferredY = if (touchPos.y > viewHeight * 0.6f) {
+                    touchPos.y - loupeSizePx - 140f // 指のかなり上方に配置
+                } else {
+                    touchPos.y - loupeSizePx - 110f // 通常配置
+                }
+
+                // 上下に押し出されないよう全体高さ(screenHeight)側基準でマージンを調整
+                val loupeY = preferredY.coerceIn(-viewHeight * 0.2f, viewHeight + 50f)
 
                 Box(
                     modifier = Modifier
