@@ -5,6 +5,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.util.Log
+import android.util.Size
 import android.view.TextureView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -56,30 +57,33 @@ fun CameraScreen(
     val camera2Manager = remember { Camera2Manager(context) }
     var currentTextureView by remember { mutableStateOf<TextureView?>(null) }
 
-    // 重複キャプチャ防止用フラグ
     var isCapturing by remember { mutableStateOf(false) }
 
     val configuration = LocalConfiguration.current
     val screenWidthDp = configuration.screenWidthDp.dp
 
-    fun adjustTextureViewTransform(textureView: TextureView, viewWidth: Int, viewHeight: Int) {
-        val matrix = Matrix()
+    // カメラの実際の解像度比率に合わせて、縦横の歪みだけを吸収する関数（複雑な座標計算なし）
+    fun fixAspectRatio(textureView: TextureView, previewSize: Size) {
+        val viewWidth = textureView.width
+        val viewHeight = textureView.height
+        if (viewWidth <= 0 || viewHeight <= 0) return
 
-        // カメラの入力アスペクト比（縦長 3:4）
-        val imageWidth = 1080f
-        val imageHeight = 1440f
+        // 縦持ち撮影時の実サイズ（幅・高さ反転）
+        val imgWidth = previewSize.height.toFloat()
+        val imgHeight = previewSize.width.toFloat()
 
         val viewRatio = viewWidth.toFloat() / viewHeight.toFloat()
-        val imageRatio = imageWidth / imageHeight
+        val imgRatio = imgWidth / imgHeight
 
+        val matrix = Matrix()
         val scaleX: Float
         val scaleY: Float
 
-        if (imageRatio < viewRatio) {
+        if (imgRatio < viewRatio) {
             scaleX = 1.0f
-            scaleY = viewRatio / imageRatio
+            scaleY = viewRatio / imgRatio
         } else {
-            scaleX = imageRatio / viewRatio
+            scaleX = imgRatio / viewRatio
             scaleY = 1.0f
         }
 
@@ -94,8 +98,8 @@ fun CameraScreen(
     LaunchedEffect(currentZoom) {
         currentTextureView?.let { textureView ->
             if (textureView.isAvailable) {
-                camera2Manager.openCamera(textureView, currentZoom) {
-                    Log.d("CameraScreen", "ズーム変更による再オープン (zoom: $currentZoom)")
+                camera2Manager.openCamera(textureView, currentZoom) { size ->
+                    fixAspectRatio(textureView, size)
                 }
             }
         }
@@ -117,39 +121,22 @@ fun CameraScreen(
                 return
             }
 
-            val viewWidth = textureView.width
-            val viewHeight = textureView.height
-
-            if (viewWidth <= 0 || viewHeight <= 0) {
-                isCapturing = false
-                return
-            }
-
-            // TextureViewに適用されているTransform Matrixを取得し、そのままBitmapに適用して生成
-            val transformMatrix = Matrix()
-            textureView.getTransform(transformMatrix)
-
             val rawBitmap = textureView.bitmap ?: run {
                 isCapturing = false
                 return
             }
 
-            // 画面表示と同じMatrixを適用して、正しく補正されたBitmapを作成
+            // 歪み補正Matrixを反映したBitmapを生成
+            val transformMatrix = Matrix()
+            textureView.getTransform(transformMatrix)
             val bitmap = Bitmap.createBitmap(
-                rawBitmap,
-                0,
-                0,
-                rawBitmap.width,
-                rawBitmap.height,
-                transformMatrix,
-                true
+                rawBitmap, 0, 0, rawBitmap.width, rawBitmap.height, transformMatrix, true
             )
 
             if (rawBitmap != bitmap && !rawBitmap.isRecycled) {
                 rawBitmap.recycle()
             }
 
-            // PNG形式でファイル保存
             val timestamp = System.currentTimeMillis()
             val file = File(context.cacheDir, "board_capture_$timestamp.png")
             FileOutputStream(file).use { out ->
@@ -197,13 +184,12 @@ fun CameraScreen(
                             currentTextureView = this
                             surfaceTextureListener = object : TextureView.SurfaceTextureListener {
                                 override fun onSurfaceTextureAvailable(surface: android.graphics.SurfaceTexture, width: Int, height: Int) {
-                                    adjustTextureViewTransform(this@apply, width, height)
-                                    camera2Manager.openCamera(this@apply, currentZoom) {
-                                        Log.d("CameraScreen", "正方形プレビュー開始 (zoom: $currentZoom)")
+                                    camera2Manager.openCamera(this@apply, currentZoom) { size ->
+                                        fixAspectRatio(this@apply, size)
                                     }
                                 }
                                 override fun onSurfaceTextureSizeChanged(surface: android.graphics.SurfaceTexture, width: Int, height: Int) {
-                                    adjustTextureViewTransform(this@apply, width, height)
+                                    fixAspectRatio(this@apply, camera2Manager.previewSize)
                                 }
                                 override fun onSurfaceTextureDestroyed(surface: android.graphics.SurfaceTexture): Boolean {
                                     camera2Manager.closeCamera()
@@ -215,9 +201,6 @@ fun CameraScreen(
                     },
                     update = { textureView ->
                         currentTextureView = textureView
-                        if (textureView.isAvailable) {
-                            adjustTextureViewTransform(textureView, textureView.width, textureView.height)
-                        }
                     }
                 )
             }
