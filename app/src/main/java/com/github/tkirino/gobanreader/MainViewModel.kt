@@ -44,7 +44,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     // 撮影時から出力時までセッションIDを保持（NullPointer防止のため初期値を割り当て）
     private var currentSessionId: String? = null
 
-    private var yoloCornerDetector: YoloCornerDetector? = null
+    var yoloCornerDetector: YoloCornerDetector? = null
     private var cornerInterpreter: Interpreter? = null
     private var stoneInterpreter: Interpreter? = null
 
@@ -410,5 +410,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         } catch (e: Exception) {
             Log.e("DatasetExport", "データセット出力エラー", e)
         }
+    }
+
+    // リアルタイム検出された4隅座標をセットする関数
+    fun setInitialCorners(corners: List<Point>) {
+        _uiState.update { it.copy(initialCorners = corners) }
     }
 }

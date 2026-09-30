@@ -5,6 +5,7 @@ import android.graphics.SurfaceTexture
 import android.hardware.camera2.*
 import android.os.Build
 import android.os.Handler
+import android.os.HandlerThread
 import android.os.Looper
 import android.util.Log
 import android.util.Size
@@ -16,9 +17,10 @@ class Camera2Manager(private val context: Context) {
     private val cameraManager = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
     private var cameraDevice: CameraDevice? = null
     private var captureSession: CameraCaptureSession? = null
-    private val backgroundHandler = Handler(Looper.getMainLooper())
 
-    // 端末のカメラが実際にサポートしている最適なプレビューサイズ
+    private var backgroundThread: HandlerThread? = null
+    private var backgroundHandler: Handler? = null
+
     var previewSize: Size = Size(1080, 1440)
         private set
 
@@ -26,13 +28,30 @@ class Camera2Manager(private val context: Context) {
         private const val TAG = "Camera2Manager"
     }
 
+    private fun startBackgroundThread() {
+        backgroundThread = HandlerThread("CameraBackground").also { it.start() }
+        backgroundHandler = Handler(backgroundThread!!.looper)
+    }
+
+    private fun stopBackgroundThread() {
+        backgroundThread?.quitSafely()
+        try {
+            backgroundThread?.join()
+            backgroundThread = null
+            backgroundHandler = null
+        } catch (e: InterruptedException) {
+            Log.e(TAG, "バックグラウンドスレッド停止エラー: ${e.message}")
+        }
+    }
+
     fun openCamera(textureView: TextureView, targetZoomRatio: Float, onPreviewSizeDetermined: (Size) -> Unit) {
         closeCamera()
+        startBackgroundThread()
+
         val selectedCameraId = selectBestCameraId(targetZoomRatio)
         Log.d(TAG, "選択カメラID: $selectedCameraId (ズーム: $targetZoomRatio)")
 
         try {
-            // 端末のカメラ特性から最適な解像度を自動選択
             previewSize = chooseOptimalPreviewSize(selectedCameraId)
             onPreviewSizeDetermined(previewSize)
 
@@ -52,7 +71,7 @@ class Camera2Manager(private val context: Context) {
                     cameraDevice = null
                     Log.e(TAG, "カメラオープンエラー: $error")
                 }
-            }, backgroundHandler)
+            }, backgroundHandler ?: Handler(Looper.getMainLooper()))
         } catch (e: SecurityException) {
             Log.e(TAG, "カメラ権限エラー: ${e.message}")
         }
@@ -89,7 +108,6 @@ class Camera2Manager(private val context: Context) {
             val choices = map?.getOutputSizes(SurfaceTexture::class.java)
 
             if (!choices.isNullOrEmpty()) {
-                // 4:3 (1.333) 比率に近いものを優先選択、なければ高画質サイズ
                 val targetRatio = 4.0 / 3.0
                 return choices.sortedByDescending { it.width * it.height }
                     .firstOrNull { size ->
@@ -105,8 +123,6 @@ class Camera2Manager(private val context: Context) {
 
     private fun createPreviewSession(textureView: TextureView, targetZoomRatio: Float) {
         val texture: SurfaceTexture = textureView.surfaceTexture ?: return
-
-        // 端末から取得した正確なバッファサイズを設定
         texture.setDefaultBufferSize(previewSize.width, previewSize.height)
         val surface = Surface(texture)
 
@@ -130,7 +146,11 @@ class Camera2Manager(private val context: Context) {
                     override fun onConfigured(session: CameraCaptureSession) {
                         captureSession = session
                         try {
-                            session.setRepeatingRequest(requestBuilder.build(), null, backgroundHandler)
+                            session.setRepeatingRequest(
+                                requestBuilder.build(),
+                                null,
+                                backgroundHandler ?: Handler(Looper.getMainLooper())
+                            )
                         } catch (e: Exception) {
                             Log.e(TAG, "プレビューリクエスト失敗: ${e.message}")
                         }
@@ -140,7 +160,7 @@ class Camera2Manager(private val context: Context) {
                         Log.e(TAG, "セッション設定失敗")
                     }
                 },
-                backgroundHandler
+                backgroundHandler ?: Handler(Looper.getMainLooper())
             )
         } catch (e: Exception) {
             Log.e(TAG, "プレビュー作成エラー: ${e.message}")
@@ -152,5 +172,6 @@ class Camera2Manager(private val context: Context) {
         captureSession = null
         try { cameraDevice?.close() } catch (_: Exception) {}
         cameraDevice = null
+        stopBackgroundThread()
     }
 }
