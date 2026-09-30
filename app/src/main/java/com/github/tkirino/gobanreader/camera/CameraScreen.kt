@@ -9,7 +9,6 @@ import android.util.Size
 import android.view.TextureView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
@@ -51,8 +50,8 @@ fun CameraScreen(
     val context = LocalContext.current
     val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
 
-    val supportedZooms = listOf(0.8f, 1.0f)
-    var currentZoom by remember { mutableStateOf(0.8f) }
+    // デフォルトの広角倍率（0.8f）
+    val defaultZoomRatio = 0.8f
 
     val camera2Manager = remember { Camera2Manager(context) }
     var currentTextureView by remember { mutableStateOf<TextureView?>(null) }
@@ -62,13 +61,12 @@ fun CameraScreen(
     val configuration = LocalConfiguration.current
     val screenWidthDp = configuration.screenWidthDp.dp
 
-    // カメラの実際の解像度比率に合わせて、縦横の歪みだけを吸収する関数（複雑な座標計算なし）
+    // カメラの実際の解像度比率に合わせて歪みを吸収する関数
     fun fixAspectRatio(textureView: TextureView, previewSize: Size) {
         val viewWidth = textureView.width
         val viewHeight = textureView.height
         if (viewWidth <= 0 || viewHeight <= 0) return
 
-        // 縦持ち撮影時の実サイズ（幅・高さ反転）
         val imgWidth = previewSize.height.toFloat()
         val imgHeight = previewSize.width.toFloat()
 
@@ -92,16 +90,8 @@ fun CameraScreen(
     }
 
     LaunchedEffect(Unit) {
-        if (!cameraPermissionState.status.isGranted) cameraPermissionState.launchPermissionRequest()
-    }
-
-    LaunchedEffect(currentZoom) {
-        currentTextureView?.let { textureView ->
-            if (textureView.isAvailable) {
-                camera2Manager.openCamera(textureView, currentZoom) { size ->
-                    fixAspectRatio(textureView, size)
-                }
-            }
+        if (!cameraPermissionState.status.isGranted) {
+            cameraPermissionState.launchPermissionRequest()
         }
     }
 
@@ -184,7 +174,8 @@ fun CameraScreen(
                             currentTextureView = this
                             surfaceTextureListener = object : TextureView.SurfaceTextureListener {
                                 override fun onSurfaceTextureAvailable(surface: android.graphics.SurfaceTexture, width: Int, height: Int) {
-                                    camera2Manager.openCamera(this@apply, currentZoom) { size ->
+                                    // Surfaceが準備完了した時に一度だけオープン
+                                    camera2Manager.openCamera(this@apply, defaultZoomRatio) { size ->
                                         fixAspectRatio(this@apply, size)
                                     }
                                 }
@@ -206,6 +197,7 @@ fun CameraScreen(
             }
         }
 
+        // 上部ナビゲーションバー（倍率ボタンを削除し、「戻る」と「設定」のみ配置）
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -218,29 +210,12 @@ fun CameraScreen(
                 Text("戻る")
             }
 
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                supportedZooms.forEach { ratio ->
-                    val isSelected = (currentZoom == ratio)
-                    Button(
-                        onClick = { currentZoom = ratio },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = if (isSelected) Color.White else Color.Black.copy(alpha = 0.5f),
-                            contentColor = if (isSelected) Color.Black else Color.White
-                        ),
-                        modifier = Modifier.size(44.dp),
-                        shape = CircleShape,
-                        contentPadding = PaddingValues(0.dp)
-                    ) {
-                        Text(text = "${ratio}x", fontSize = 12.sp)
-                    }
-                }
-            }
-
             Button(onClick = onSettingsClick) {
                 Text("設定")
             }
         }
 
+        // 下部キャプチャボタン
         Box(
             modifier = Modifier
                 .fillMaxWidth()
