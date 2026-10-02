@@ -13,15 +13,23 @@ import org.tensorflow.lite.Interpreter
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
+data class DetectionResult(
+    val color: StoneColor,
+    val isCertain: Boolean
+)
+
 class CnnStoneDetector(private val interpreter: Interpreter) {
 
     private val patchRadius = 20
+    // 確信度の閾値（80%未満は「確信なし（?）」とする）
+    private val confidenceThreshold = 0.80f
 
     fun detectStones(
         rectifiedMat: Mat,
         geometryGrid: Array<Array<Point>>
-    ): List<List<StoneColor>> {
+    ): Pair<List<List<StoneColor>>, List<List<Boolean>>> {
         val boardLayout = MutableList(19) { MutableList(19) { StoneColor.EMPTY } }
+        val certaintyLayout = MutableList(19) { MutableList(19) { true } }
 
         val maxCols = rectifiedMat.cols()
         val maxRows = rectifiedMat.rows()
@@ -48,8 +56,9 @@ class CnnStoneDetector(private val interpreter: Interpreter) {
                         val resizedColor = Mat()
                         Imgproc.resize(colorPatchMat, resizedColor, Size(40.0, 40.0))
 
-                        val predictedColor = runInference(resizedColor)
-                        boardLayout[row][col] = predictedColor
+                        val result = runInference(resizedColor)
+                        boardLayout[row][col] = result.color
+                        certaintyLayout[row][col] = result.isCertain
 
                         colorPatchMat.release()
                         resizedColor.release()
@@ -61,15 +70,14 @@ class CnnStoneDetector(private val interpreter: Interpreter) {
             Log.e("CnnStoneDetector", "碁石の検出処理中にエラーが発生しました", e)
         }
 
-        return boardLayout.map { it.toList() }
+        return Pair(boardLayout.map { it.toList() }, certaintyLayout.map { it.toList() })
     }
 
-    private fun runInference(colorMat: Mat): StoneColor {
+    private fun runInference(colorMat: Mat): DetectionResult {
         val rgbMat = Mat()
         return try {
             Imgproc.cvtColor(colorMat, rgbMat, Imgproc.COLOR_BGR2RGB)
 
-            // カラー画像バッファ (1, 40, 40, 3) - 学習時の / 255.0f の正規化に合わせる
             val colorBuffer = ByteBuffer.allocateDirect(1 * 40 * 40 * 3 * 4).order(ByteOrder.nativeOrder())
             val colorBmp = Bitmap.createBitmap(rgbMat.cols(), rgbMat.rows(), Bitmap.Config.ARGB_8888)
             Utils.matToBitmap(rgbMat, colorBmp)
@@ -83,7 +91,6 @@ class CnnStoneDetector(private val interpreter: Interpreter) {
             }
             colorBmp.recycle()
 
-            // 単一入力・単一出力の推論実行
             val outputVal = Array(1) { FloatArray(3) }
             interpreter.run(colorBuffer, outputVal)
 
@@ -97,14 +104,18 @@ class CnnStoneDetector(private val interpreter: Interpreter) {
                 }
             }
 
-            when (maxIndex) {
+            val predictedColor = when (maxIndex) {
                 1 -> StoneColor.BLACK
                 2 -> StoneColor.WHITE
                 else -> StoneColor.EMPTY
             }
+
+            val isCertain = maxVal >= confidenceThreshold
+
+            DetectionResult(color = predictedColor, isCertain = isCertain)
         } catch (e: Exception) {
             Log.e("CnnStoneDetector", "推論実行エラー", e)
-            StoneColor.EMPTY
+            DetectionResult(color = StoneColor.EMPTY, isCertain = true)
         } finally {
             rgbMat.release()
         }

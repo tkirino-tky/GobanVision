@@ -1,5 +1,7 @@
 package com.github.tkirino.gobanreader.display
 
+import android.graphics.Paint
+import android.graphics.Typeface
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -10,13 +12,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import com.github.tkirino.gobanreader.model.StoneColor
 
 @Composable
 fun GoBoard(
     boardMatrix: List<List<StoneColor>>,
-    onIntersectionClick: (Int, Int) -> Unit, // 【追加】タップされた行と列を返すコールバック
+    certaintyMatrix: List<List<Boolean>> = List(19) { List(19) { true } }, // 【追加】確信度フラグマトリクス
+    onIntersectionClick: (Int, Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Canvas(
@@ -30,15 +35,12 @@ fun GoBoard(
                     val cellSize = boardSize / 20f
                     val padding = cellSize
 
-                    // タップされた座標から、一番近い交点（0〜18）を逆算する
                     val x = offset.x - padding
                     val y = offset.y - padding
                     val col = (x / cellSize).toInt()
                     val row = (y / cellSize).toInt()
 
-                    // 範囲内（0〜18）であればコールバックを呼ぶ
                     if (row in 0 until 19 && col in 0 until 19) {
-                        // タップ位置が交点の許容範囲内かどうかの判定（少しシビアにしたい場合は距離判定も可能ですが、まずはシンプルに）
                         onIntersectionClick(row, col)
                     }
                 }
@@ -78,15 +80,26 @@ fun GoBoard(
             }
         }
 
-        // 3. 石の描画
+        // 3. 石の描画 ＆ 「自信なし（?）」マークのオーバーレイ描画
         val stoneRadius = (cellSize * 0.92f) / 2f
+
+        // Native Text Paint の準備（派手な「？」用）
+        val textPaint = Paint().apply {
+            color = android.graphics.Color.RED
+            textSize = cellSize * 0.85f
+            typeface = Typeface.DEFAULT_BOLD
+            textAlign = Paint.Align.CENTER
+        }
+
         for (row in 0 until 19) {
             for (col in 0 until 19) {
                 val stone = boardMatrix[row][col]
-                if (stone != StoneColor.EMPTY) {
-                    val cx = padding + (col * cellSize)
-                    val cy = padding + (row * cellSize)
+                val isCertain = certaintyMatrix.getOrNull(row)?.getOrNull(col) ?: true
+                val cx = padding + (col * cellSize)
+                val cy = padding + (row * cellSize)
 
+                // 3-A. 石（黒石・白石）の描画
+                if (stone != StoneColor.EMPTY) {
                     when (stone) {
                         StoneColor.BLACK -> {
                             drawCircle(
@@ -110,6 +123,32 @@ fun GoBoard(
                         }
                         else -> {}
                     }
+                }
+
+                // 3-B. 自信なし（!isCertain）の場合は交点の上に「？」と目立つ背景を描画
+                if (!isCertain) {
+                    // 目立つように黄色の丸背景を敷く（空点でも石の上でもくっきり浮き出ます）
+                    drawCircle(
+                        color = Color(0xFFFFEB3B), // 鮮やかな黄色
+                        radius = stoneRadius * 0.75f,
+                        center = Offset(cx, cy)
+                    )
+                    drawCircle(
+                        color = Color.Red,
+                        radius = stoneRadius * 0.75f,
+                        center = Offset(cx, cy),
+                        style = Stroke(width = 2f)
+                    )
+
+                    // 赤色の太字「？」テキストを描画
+                    // テキスト描画のY軸調整（ベースライン補正）
+                    val textY = cy - (textPaint.descent() + textPaint.ascent()) / 2
+                    drawContext.canvas.nativeCanvas.drawText(
+                        "?",
+                        cx,
+                        textY,
+                        textPaint
+                    )
                 }
             }
         }

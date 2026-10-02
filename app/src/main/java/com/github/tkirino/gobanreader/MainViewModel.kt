@@ -24,7 +24,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.opencv.android.Utils
-import org.opencv.core.Core
 import org.opencv.core.Mat
 import org.opencv.core.Point
 import org.opencv.core.Rect
@@ -41,7 +40,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     var toastMessage by mutableStateOf<String?>(null)
     private var lastSourceMat: Mat? = null
 
-    // 撮影時から出力時までセッションIDを保持（NullPointer防止のため初期値を割り当て）
     private var currentSessionId: String? = null
 
     var yoloCornerDetector: YoloCornerDetector? = null
@@ -112,21 +110,18 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 val imgCols = rawSrc.cols()
                 val imgRows = rawSrc.rows()
 
-                // ★根本解決: 縦長画像の中央から正方形(1:1)を正確に切り出す
                 val squareSize = minOf(imgCols, imgRows)
                 val startX = (imgCols - squareSize) / 2
-                val startY = (imgRows - squareSize) / 2 // 上端(0)ではなく「中央」から切る
+                val startY = (imgRows - squareSize) / 2
 
                 val guideRect = Rect(startX, startY, squareSize, squareSize)
 
-                // 完全にカメラ表示と同じ「中央正方形」の Mat を生成
                 val fullSrc = Mat(rawSrc, guideRect).clone()
                 rawSrc.release()
 
                 lastSourceMat?.release()
                 lastSourceMat = fullSrc.clone()
 
-                // 画面表示用 Bitmap も「中央正方形 Mat」から作成
                 val rgbMat = Mat()
                 Imgproc.cvtColor(fullSrc, rgbMat, Imgproc.COLOR_BGR2RGB)
                 val bmp = android.graphics.Bitmap.createBitmap(rgbMat.cols(), rgbMat.rows(), android.graphics.Bitmap.Config.ARGB_8888)
@@ -137,7 +132,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
                 val currentTime = System.currentTimeMillis()
 
-                // ⚠️ 【聖域・削除変更厳禁】YOLO訓練データ出力
                 if (DebugConfig.YOLO_TRAINING_DATA_EXPORT) {
                     if (currentTime - lastYoloExportTime > 1500L) {
                         lastYoloExportTime = currentTime
@@ -147,7 +141,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     }
                 }
 
-                // クラスで保持している yoloCornerDetector を直接呼び出す
                 val detectionResult = yoloCornerDetector?.detectCorners(fullSrc, Rect(0, 0, squareSize, squareSize))
 
                 val sizeD = squareSize.toDouble()
@@ -221,14 +214,19 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 val stoneInterpreterInstance = stoneInterpreter
                 if (stoneInterpreterInstance != null) {
                     val cnnDetector = CnnStoneDetector(stoneInterpreterInstance)
-                    val stoneResult = cnnDetector.detectStones(rectifiedMat, geometryGrid)
+                    val (stoneResult, certaintyResult) = cnnDetector.detectStones(rectifiedMat, geometryGrid)
 
-                    // ⚠️ 【聖域・削除変更厳禁】CNN訓練データ出力
                     if (DebugConfig.isEnabled && DebugConfig.CNN_TRAINING_DATA_EXPORT) {
                         exportCNNTrainingData(rectifiedMat, geometryGrid, stoneResult)
                     }
 
-                    _uiState.update { it.copy(isLoading = false, boardLayout = stoneResult) }
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            boardLayout = stoneResult,
+                            certaintyLayout = certaintyResult
+                        )
+                    }
                     toastMessage = "碁盤の解析が完了しました"
                 } else {
                     _uiState.update { it.copy(isLoading = false) }
@@ -268,25 +266,36 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     list
                 }
             }
-            state.copy(boardLayout = newLayout)
+            val newCertainty = state.certaintyLayout.mapIndexed { r, list ->
+                if (r == row) {
+                    list.mapIndexed { c, current -> if (c == col) true else current }
+                } else {
+                    list
+                }
+            }
+            state.copy(boardLayout = newLayout, certaintyLayout = newCertainty)
         }
     }
 
     fun rotateLeft() {
         _uiState.update { state ->
-            val current = state.boardLayout
-            val size = current.size
-            val newLayout = List(size) { r -> List(size) { c -> current[c][size - 1 - r] } }
-            state.copy(boardLayout = newLayout)
+            val currentLayout = state.boardLayout
+            val currentCertainty = state.certaintyLayout
+            val size = currentLayout.size
+            val newLayout = List(size) { r -> List(size) { c -> currentLayout[c][size - 1 - r] } }
+            val newCertainty = List(size) { r -> List(size) { c -> currentCertainty[c][size - 1 - r] } }
+            state.copy(boardLayout = newLayout, certaintyLayout = newCertainty)
         }
     }
 
     fun rotateRight() {
         _uiState.update { state ->
-            val current = state.boardLayout
-            val size = current.size
-            val newLayout = List(size) { r -> List(size) { c -> current[size - 1 - c][r] } }
-            state.copy(boardLayout = newLayout)
+            val currentLayout = state.boardLayout
+            val currentCertainty = state.certaintyLayout
+            val size = currentLayout.size
+            val newLayout = List(size) { r -> List(size) { c -> currentLayout[size - 1 - c][r] } }
+            val newCertainty = List(size) { r -> List(size) { c -> currentCertainty[size - 1 - c][r] } }
+            state.copy(boardLayout = newLayout, certaintyLayout = newCertainty)
         }
     }
 
@@ -329,7 +338,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             val result = sgfWriter.saveSgfFileAutoNamed(sgfString)
 
             result.onSuccess { savedFile ->
-                // ★ メール送信の成否にかかわらず、保存されたファイルをコールバックに返す
                 onFileSaved(savedFile)
             }.onFailure { e ->
                 Log.e("MainViewModel", "SGF保存失敗", e)
@@ -338,8 +346,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    // ⚠️ 【聖域・削除変更厳禁】YOLO訓練データ出力
-    // ⚠️ 【聖域・削除変更厳禁】YOLO訓練データ出力
     private fun exportYOLOTrainingData(mat: Mat, sessionId: String) {
         try {
             val baseDir = File(
@@ -348,7 +354,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             )
             val sampleDir = File(baseDir, sessionId).apply { if (!exists()) mkdirs() }
 
-            // ★修正: Bitmapへの変換を行わず、OpenCVで正方形Matを直接PNG出力（潰れ・歪みを完全に防止）
             val file = File(sampleDir, "board_orig.png")
             val success = Imgcodecs.imwrite(file.absolutePath, mat)
 
@@ -362,7 +367,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    // ⚠️ 【聖域・削除変更厳禁】CNN訓練データ出力
     private fun exportCNNTrainingData(
         rectifiedMat: Mat,
         geometryGrid: Array<Array<Point>>,
@@ -416,7 +420,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    // リアルタイム検出された4隅座標をセットする関数
     fun setInitialCorners(corners: List<Point>) {
         _uiState.update { it.copy(initialCorners = corners) }
     }

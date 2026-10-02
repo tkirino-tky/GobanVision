@@ -5,15 +5,19 @@ import org.opencv.core.Point
 
 data class ReaderUiState(
     val adjustmentBitmap: Bitmap? = null,
-    val initialCorners: List<Point> = emptyList(), // これを追加
-    val rawCorners: List<Point> = emptyList(),     // これを追加
-    // 対局の基本情報・棋譜データはここにまとめる
+    val initialCorners: List<Point> = emptyList(),
+    val rawCorners: List<Point> = emptyList(),
     val gameRecord: GameRecord = GameRecord(),
 
-    // 以下は、現在の画面（表示・認識）がリアルタイムに管理する状態
+    // 19x19 の盤面レイアウト
     val boardLayout: List<List<StoneColor>> =
         List(gameRecord.boardSize) { List(gameRecord.boardSize) { StoneColor.EMPTY } },
+
+    // 19x19 の確信度フラグ（false の場所は「?」表示）
+    val certaintyLayout: List<List<Boolean>> =
+        List(gameRecord.boardSize) { List(gameRecord.boardSize) { true } },
+
     val blackCaptured: Int = 0,
     val whiteCaptured: Int = 0,
-    val isLoading: Boolean = false // 例：画像解析中などのUI状態もここに入れられる
+    val isLoading: Boolean = false
 )

@@ -125,8 +125,10 @@ fun DisplayScreen(
             Spacer(modifier = Modifier.weight(1f))
 
             // 4. 碁盤表示領域
+            // DisplayScreen.kt 内の GoBoard 呼び出し箇所
             GoBoard(
                 boardMatrix = uiState.boardLayout,
+                certaintyMatrix = uiState.certaintyLayout, // ★これを追加
                 onIntersectionClick = { row, col ->
                     val colorToSet = when (editMode) {
                         EditMode.BLACK -> StoneColor.BLACK
