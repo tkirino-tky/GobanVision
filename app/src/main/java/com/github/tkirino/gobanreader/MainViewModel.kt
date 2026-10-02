@@ -329,7 +329,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             val result = sgfWriter.saveSgfFileAutoNamed(sgfString)
 
             result.onSuccess { savedFile ->
-                if (recipientEmail.isNotBlank()) onFileSaved(savedFile)
+                // ★ メール送信の成否にかかわらず、保存されたファイルをコールバックに返す
+                onFileSaved(savedFile)
+            }.onFailure { e ->
+                Log.e("MainViewModel", "SGF保存失敗", e)
+                toastMessage = "SGFファイルの保存に失敗しました"
             }
         }
     }

@@ -12,6 +12,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -71,6 +72,14 @@ fun CameraScreen(
     var isDetecting by remember { mutableStateOf(false) }
     var lastDetectionTime by remember { mutableLongStateOf(0L) }
 
+    // 発熱対策：連続未検出カウントと動的サンプリング間隔 (ms)
+    var missCount by remember { mutableIntStateOf(0) }
+    var currentIntervalMs by remember { mutableLongStateOf(100L) }
+
+    // 検出成功時の画像と原寸座標をフリーズ保持（手振れ・決定時ズレ対策）
+    var lastDetectedBitmap by remember { mutableStateOf<Bitmap?>(null) }
+    var lastDetectedRawCorners by remember { mutableStateOf<List<Point>?>(null) }
+
     val configuration = LocalConfiguration.current
     val screenWidthDp = configuration.screenWidthDp.dp
 
@@ -101,10 +110,10 @@ fun CameraScreen(
         textureView.setTransform(matrix)
     }
 
-    // 最新フレームに対するYOLO推論（100ms間隔で非同期実行）
+    // リアルタイムYOLO推論処理（動的サンプリング付き）
     fun processFrameForCorners(textureView: TextureView) {
         val currentTime = System.currentTimeMillis()
-        if (isDetecting || isCapturing || currentTime - lastDetectionTime < 100) return
+        if (isDetecting || isCapturing || currentTime - lastDetectionTime < currentIntervalMs) return
 
         val rawBitmap = textureView.bitmap ?: return
         isDetecting = true
@@ -121,7 +130,6 @@ fun CameraScreen(
                     rawBitmap, 0, 0, rawBitmap.width, rawBitmap.height, transformMatrix, true
                 )
 
-                // 縦長画像から「中央正方形」を切り抜く計算 (MainViewModelと同じロジック)
                 val imgCols = bitmap.width
                 val imgRows = bitmap.height
                 val squareSize = minOf(imgCols, imgRows)
@@ -130,7 +138,6 @@ fun CameraScreen(
 
                 val guideRect = Rect(startX, startY, squareSize, squareSize)
 
-                // 中央正方形部分をOpenCV Matとして抽出
                 val fullMat = Mat()
                 Utils.bitmapToMat(bitmap, fullMat)
                 val croppedMat = Mat(fullMat, guideRect).clone()
@@ -140,19 +147,35 @@ fun CameraScreen(
                 val result = yoloDetector?.detectCorners(croppedMat, Rect(0, 0, squareSize, squareSize))
 
                 croppedMat.release()
-                if (rawBitmap != bitmap && !bitmap.isRecycled) bitmap.recycle()
-                if (!rawBitmap.isRecycled) rawBitmap.recycle()
 
                 withContext(Dispatchers.Main) {
                     if (result != null && result.corners.size == 4) {
-                        // 画面表示サイズ(SquareTextureView)と切り抜いた正方形サイズの倍率
-                        val scale = textureView.width.toFloat() / squareSize.toFloat()
+                        // 検出成功時：間隔を100msに復帰
+                        missCount = 0
+                        currentIntervalMs = 100L
 
-                        // 切り抜き後の座標(0〜squareSize)に対してスケールを適用
+                        val scale = textureView.width.toFloat() / squareSize.toFloat()
                         detectedCorners = result.corners.map { Point(it.x * scale, it.y * scale) }
+
+                        // 検出に成功した正方形ビットマップと原寸座標を記憶しておく
+                        val squareBitmap = Bitmap.createBitmap(bitmap, startX, startY, squareSize, squareSize)
+                        lastDetectedBitmap?.recycle()
+                        lastDetectedBitmap = squareBitmap
+                        lastDetectedRawCorners = result.corners
+
+                        if (rawBitmap != bitmap && !bitmap.isRecycled) bitmap.recycle()
                     } else {
+                        // 検出失敗時：段階的にサンプリング間隔を伸ばす（発熱抑制）
+                        missCount++
+                        currentIntervalMs = when {
+                            missCount > 30 -> 1000L // 約3秒以上見つからない場合は1秒に1回
+                            missCount > 10 -> 500L  // 約1秒以上見つからない場合は0.5秒に1回
+                            else -> 100L
+                        }
                         detectedCorners = null
+                        if (rawBitmap != bitmap && !bitmap.isRecycled) bitmap.recycle()
                     }
+                    if (!rawBitmap.isRecycled) rawBitmap.recycle()
                     isDetecting = false
                 }
             } catch (e: Exception) {
@@ -176,54 +199,74 @@ fun CameraScreen(
         }
     }
 
-    fun captureAndProcess() {
+    // 決定（直接認識）処理：検出成功時点の画像を使用して直ちに解析へ進む
+    fun processDirectly() {
         if (isCapturing) return
+        val bitmap = lastDetectedBitmap
+        val corners = lastDetectedRawCorners
+
+        if (bitmap == null || corners == null || corners.size != 4) return
         isCapturing = true
 
-        try {
-            val textureView = currentTextureView ?: run {
-                isCapturing = false
-                return
-            }
+        coroutineScope.launch(Dispatchers.IO) {
+            try {
+                val timestamp = System.currentTimeMillis()
+                val file = File(context.cacheDir, "board_capture_$timestamp.png")
+                FileOutputStream(file).use { out ->
+                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+                }
 
-            val rawBitmap = textureView.bitmap ?: run {
-                isCapturing = false
-                return
-            }
-
-            val transformMatrix = Matrix()
-            textureView.getTransform(transformMatrix)
-            val bitmap = Bitmap.createBitmap(
-                rawBitmap, 0, 0, rawBitmap.width, rawBitmap.height, transformMatrix, true
-            )
-
-            if (rawBitmap != bitmap && !rawBitmap.isRecycled) {
-                rawBitmap.recycle()
-            }
-
-            val timestamp = System.currentTimeMillis()
-            val file = File(context.cacheDir, "board_capture_$timestamp.png")
-            FileOutputStream(file).use { out ->
-                bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
-            }
-
-            viewModel.loadPhotoForAdjustment(file.absolutePath) { isGood ->
-                coroutineScope.launch(Dispatchers.Main) {
-                    isCapturing = false
-                    if (isGood) {
-                        val initialCorners = viewModel.uiState.value.initialCorners
-                        val expanded = com.github.tkirino.gobanreader.utility.CornerUtils.calculateExpandedCorners(initialCorners)
+                viewModel.loadPhotoForAdjustment(file.absolutePath) { _ ->
+                    coroutineScope.launch(Dispatchers.Main) {
+                        isCapturing = false
+                        val expanded = com.github.tkirino.gobanreader.utility.CornerUtils.calculateExpandedCorners(corners)
                         viewModel.processWithCorners(expanded)
                         onDetectionSuccess()
-                    } else {
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("CameraScreen", "ダイレクト認識処理エラー", e)
+                withContext(Dispatchers.Main) {
+                    isCapturing = false
+                }
+            }
+        }
+    }
+
+    // 手動ボタン押下時処理：検出成功時点の画像をロードしてCornerScreenへ遷移する
+    fun processManual() {
+        if (isCapturing) return
+        val bitmap = lastDetectedBitmap
+        val corners = lastDetectedRawCorners
+
+        if (bitmap == null || corners == null) {
+            onManualInputClick()
+            return
+        }
+        isCapturing = true
+
+        coroutineScope.launch(Dispatchers.IO) {
+            try {
+                val timestamp = System.currentTimeMillis()
+                val file = File(context.cacheDir, "board_capture_$timestamp.png")
+                FileOutputStream(file).use { out ->
+                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+                }
+
+                viewModel.loadPhotoForAdjustment(file.absolutePath) { _ ->
+                    coroutineScope.launch(Dispatchers.Main) {
+                        isCapturing = false
+                        viewModel.setInitialCorners(corners)
                         onManualInputClick()
                     }
                 }
+            } catch (e: Exception) {
+                Log.e("CameraScreen", "手動調整ロードエラー", e)
+                withContext(Dispatchers.Main) {
+                    isCapturing = false
+                    onManualInputClick()
+                }
             }
-
-        } catch (e: Exception) {
-            Log.e("CameraScreen", "キャプチャ処理エラー", e)
-            isCapturing = false
         }
     }
 
@@ -260,7 +303,6 @@ fun CameraScreen(
                                     return true
                                 }
                                 override fun onSurfaceTextureUpdated(surface: android.graphics.SurfaceTexture) {
-                                    // 毎フレーム更新時にYOLOコーナー検出を実行
                                     processFrameForCorners(this@apply)
                                 }
                             }
@@ -271,7 +313,7 @@ fun CameraScreen(
                     }
                 )
 
-                // リアルタイムオーバーレイ描画（枠線と4隅の丸印）
+                // リアルタイムオーバーレイ描画
                 Canvas(modifier = Modifier.fillMaxSize()) {
                     val corners = detectedCorners
                     val isReady = corners != null && corners.size == 4
@@ -322,7 +364,7 @@ fun CameraScreen(
             }
         }
 
-        // 下部ボタンと検出状態テキスト
+        // 下部ボタン群とステータス表示
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -338,21 +380,43 @@ fun CameraScreen(
                 modifier = Modifier.padding(bottom = 12.dp)
             )
 
-            Button(
-                onClick = { captureAndProcess() },
-                enabled = !isCapturing,
-                modifier = Modifier
-                    .fillMaxWidth(0.8f)
-                    .height(56.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = if (isReady) Color(0xFF2E7D32) else Color.Gray
-                )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = if (isCapturing) "処理中..." else "この画角で決定（認識へ）",
-                    fontSize = 16.sp,
-                    color = Color.White
-                )
+                // 手動調整モードボタン（CornerScreenへ遷移）
+                OutlinedButton(
+                    onClick = { processManual() },
+                    enabled = !isCapturing && isReady,
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(56.dp)
+                ) {
+                    Text(
+                        text = "手動",
+                        fontSize = 16.sp,
+                        color = Color.White
+                    )
+                }
+
+                // ダイレクト認識決定ボタン（直接DisplayScreenへ遷移）
+                Button(
+                    onClick = { processDirectly() },
+                    enabled = !isCapturing && isReady,
+                    modifier = Modifier
+                        .weight(2f)
+                        .height(56.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (isReady) Color(0xFF2E7D32) else Color.Gray
+                    )
+                ) {
+                    Text(
+                        text = if (isCapturing) "処理中..." else "この画角で決定（認識へ）",
+                        fontSize = 16.sp,
+                        color = Color.White
+                    )
+                }
             }
         }
     }

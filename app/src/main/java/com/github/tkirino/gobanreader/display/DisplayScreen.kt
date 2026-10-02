@@ -11,15 +11,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.AlertDialog
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -33,6 +30,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.github.tkirino.gobanreader.MainViewModel
+import com.github.tkirino.gobanreader.export.SgfActionHelper
+import com.github.tkirino.gobanreader.export.SgfExportDialog
 import com.github.tkirino.gobanreader.model.StoneColor
 import com.github.tkirino.gobanreader.utility.PreferencesManager
 
@@ -60,20 +59,20 @@ fun DisplayScreen(
     var showEmailDialog by remember { mutableStateOf(false) }
     var emailInput by remember { mutableStateOf("") }
 
-    // 【追加】現在選択中の手動修正モード（初期値は黒石）
+    // 現在選択中の手動修正モード（初期値は黒石）
     var editMode by remember { mutableStateOf(EditMode.BLACK) }
 
-    Scaffold(
-        topBar = { TopAppBar(title = { Text("Goban Reader - 解析結果表示") }) }
-    ) { innerPadding ->
+    Scaffold { innerPadding ->
         Column(
             modifier = Modifier
                 .padding(innerPadding)
+                .statusBarsPadding()
                 .navigationBarsPadding()
                 .fillMaxSize()
-                .padding(16.dp),
+                .padding(horizontal = 16.dp, vertical = 8.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // 1. メッセージ表示
             val statusText = if (uiState.isLoading) {
                 "画像を解析中..."
             } else {
@@ -83,12 +82,12 @@ fun DisplayScreen(
             Text(
                 text = statusText,
                 fontSize = 14.sp,
-                modifier = Modifier.fillMaxWidth().height(30.dp)
+                modifier = Modifier.padding(vertical = 4.dp)
             )
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            // 【追加】手動修正用のモード切替ボタン群
+            // 2. 修正ツール
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly,
@@ -112,9 +111,20 @@ fun DisplayScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(4.dp))
 
-            // GoBoard にタップ時のコールバック（viewModel.updateStone）を渡す
+            // 3. 回転ボタン（上部に配置）
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                Button(onClick = { viewModel.rotateLeft() }) { Text("左90°回転") }
+                Button(onClick = { viewModel.rotateRight() }) { Text("右90°回転") }
+            }
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            // 4. 碁盤表示領域
             GoBoard(
                 boardMatrix = uiState.boardLayout,
                 onIntersectionClick = { row, col ->
@@ -130,73 +140,39 @@ fun DisplayScreen(
 
             Spacer(modifier = Modifier.weight(1f))
 
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                Button(onClick = { viewModel.rotateLeft() }) { Text("左90°回転") }
-                Button(onClick = { viewModel.rotateRight() }) { Text("右90°回転") }
-            }
-            Spacer(modifier = Modifier.height(12.dp))
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+            // 5. 最下部のアクションボタン
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
                 Button(onClick = {
                     emailInput = PreferencesManager.getSavedEmail(context)
                     showEmailDialog = true
-                }) { Text("SGF出力 & メール") }
+                }) { Text("SGF出力 & 共有") } // ラベルを少し分かりやすく変更
                 Button(onClick = onBackClick) { Text("戻る") }
             }
         }
     }
 
+    // ★ 新しい SGF出力・共有ダイアログの呼び出し
     if (showEmailDialog) {
-        AlertDialog(
+        SgfExportDialog(
+            initialEmail = emailInput,
             onDismissRequest = { showEmailDialog = false },
-            title = { Text("SGF出力とメール送信") },
-            text = {
-                Column {
-                    Text("送信先メールアドレスを入力してください。\n(空欄の場合は端末への保存のみ行います)")
-                    Spacer(modifier = Modifier.height(8.dp))
-                    OutlinedTextField(
-                        value = emailInput,
-                        onValueChange = { emailInput = it },
-                        label = { Text("メールアドレス") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showEmailDialog = false
-                        // ViewModelに保存を依頼し、保存されたファイルを受け取ってUI側のActivityからメールを確実に起動する
-                        viewModel.exportSgf(context, uiState.gameRecord, emailInput) { savedFile ->
-                            try {
-                                val authority = "${context.packageName}.fileprovider"
-                                val uri: android.net.Uri = androidx.core.content.FileProvider.getUriForFile(context, authority, savedFile)
+            onConfirm = { email, openViewer ->
+                showEmailDialog = false
+                viewModel.exportSgf(context, uiState.gameRecord, email) { savedFile ->
+                    Toast.makeText(context, "SGFファイルを保存しました", Toast.LENGTH_SHORT).show()
 
-                                val intent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
-                                    type = "text/plain"
-                                    putExtra(android.content.Intent.EXTRA_EMAIL, arrayOf(emailInput))
-                                    putExtra(android.content.Intent.EXTRA_SUBJECT, "GobanReader: ${savedFile.name}")
-                                    putExtra(android.content.Intent.EXTRA_TEXT, "碁盤の解析結果（SGFファイル）を添付します。")
-                                    putExtra(android.content.Intent.EXTRA_STREAM, uri)
-                                    addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                                    clipData = android.content.ClipData.newUri(context.contentResolver, "SGF File", uri)
-                                }
-
-                                val chooser = android.content.Intent.createChooser(intent, "メールアプリを選択")
-                                context.startActivity(chooser)
-                            } catch (e: Exception) {
-                                Log.e("GobanEmail", "メール送信インテントの起動に失敗しました", e)
-                                Toast.makeText(context, "メール起動エラー: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
-                            }
-                        }
+                    // 1. メールアドレスが入力されている場合はメール共有を起動
+                    if (email.isNotEmpty()) {
+                        SgfActionHelper.sendSgfByEmail(context, savedFile, email)
                     }
-                ) {
-                    Text("実行")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showEmailDialog = false }) {
-                    Text("キャンセル")
+
+                    // 2. 「棋譜ビューアで開く」にチェックがある場合はビューア起動
+                    if (openViewer) {
+                        SgfActionHelper.openSgfWithViewer(context, savedFile)
+                    }
                 }
             }
         )
