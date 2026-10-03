@@ -1,6 +1,7 @@
 package com.github.tkirino.gobanreader
 
 import android.app.Application
+import android.graphics.Bitmap
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -197,23 +198,27 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    /**
+     * 決定ボタン押下時：高精度な単一画像推論を実行する
+     */
     fun processWithCorners(corners: List<Point>) {
         val src = lastSourceMat?.clone() ?: return
 
         viewModelScope.launch(Dispatchers.Default) {
             try {
                 _uiState.update { it.copy(initialCorners = corners, isLoading = true) }
-                val rectifiedMat = BoardRectifier.rectify(src, corners)
-                src.release()
-
-                val geometryGrid = createArithmeticGrid(
-                    rectifiedMat.cols().toDouble(),
-                    rectifiedMat.rows().toDouble()
-                )
 
                 val stoneInterpreterInstance = stoneInterpreter
                 if (stoneInterpreterInstance != null) {
+                    val rectifiedMat = BoardRectifier.rectify(src, corners)
+                    val geometryGrid = createArithmeticGrid(
+                        rectifiedMat.cols().toDouble(),
+                        rectifiedMat.rows().toDouble()
+                    )
+
                     val cnnDetector = CnnStoneDetector(stoneInterpreterInstance)
+
+                    // 単一画像から安全フィルタ付きで高精度推論を実行
                     val (stoneResult, certaintyResult) = cnnDetector.detectStones(rectifiedMat, geometryGrid)
 
                     if (DebugConfig.isEnabled && DebugConfig.CNN_TRAINING_DATA_EXPORT) {
@@ -228,12 +233,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         )
                     }
                     toastMessage = "碁盤の解析が完了しました"
+                    rectifiedMat.release()
                 } else {
                     _uiState.update { it.copy(isLoading = false) }
                     toastMessage = "碁石認識モデルが初期化されていません"
                 }
 
-                rectifiedMat.release()
+                src.release()
+
             } catch (e: Exception) {
                 _uiState.update { it.copy(isLoading = false) }
                 toastMessage = "解析エラー: ${e.localizedMessage}"

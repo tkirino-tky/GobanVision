@@ -148,20 +148,22 @@ fun CameraScreen(
 
                 croppedMat.release()
 
+                // CameraScreen.kt の processFrameForCorners 内（成功時ブロック）
                 withContext(Dispatchers.Main) {
                     if (result != null && result.corners.size == 4) {
-                        // 検出成功時：間隔を100msに復帰
                         missCount = 0
                         currentIntervalMs = 100L
 
                         val scale = textureView.width.toFloat() / squareSize.toFloat()
                         detectedCorners = result.corners.map { Point(it.x * scale, it.y * scale) }
 
-                        // 検出に成功した正方形ビットマップと原寸座標を記憶しておく
                         val squareBitmap = Bitmap.createBitmap(bitmap, startX, startY, squareSize, squareSize)
                         lastDetectedBitmap?.recycle()
                         lastDetectedBitmap = squareBitmap
                         lastDetectedRawCorners = result.corners
+
+                        // ★以下の行を削除（またはコメントアウト）してください
+                        // viewModel.pushFrameForInference(squareBitmap, result.corners)
 
                         if (rawBitmap != bitmap && !bitmap.isRecycled) bitmap.recycle()
                     } else {
