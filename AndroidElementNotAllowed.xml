@@ -1,0 +1,14 @@
+<problems>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/main/res/xml/file_paths.xml</file>
+  <line>12</line>
+  <module>GobanReader.app.main</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/app/src/main/res/xml/file_paths.xml" />
+  <problem_class id="AndroidElementNotAllowed" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Android XML element is not allowed</problem_class>
+  <description>Element external-storage-path is not allowed here</description>
+  <highlighted_element>external-storage-path</highlighted_element>
+  <language>XML</language>
+  <offset>5</offset>
+  <length>21</length>
+</problem>
+</problems>

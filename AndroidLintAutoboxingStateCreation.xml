@@ -1,0 +1,72 @@
+<problems>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/main/java/com/github/tkirino/gobanreader/MainViewModel.kt</file>
+  <line>92</line>
+  <module>GobanReader.app.main</module>
+  <package>com.github.tkirino.gobanreader</package>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/app/src/main/java/com/github/tkirino/gobanreader/MainViewModel.kt" />
+  <problem_class id="AndroidLintAutoboxingStateCreation" severity="WEAK WARNING" attribute_key="INFO_ATTRIBUTES">State&lt;T&gt; will autobox values assigned to this state. Use a specialized state type instead.</problem_class>
+  <hints />
+  <description>&lt;html&gt;Prefer &lt;code&gt;mutableIntStateOf&lt;/code&gt; instead of &lt;code&gt;mutableStateOf&lt;/code&gt;&lt;/html&gt;</description>
+  <highlighted_element>mutableStateOf</highlighted_element>
+  <language>kotlin</language>
+  <offset>32</offset>
+  <length>14</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/main/java/com/github/tkirino/gobanreader/corner/CornerScreen.kt</file>
+  <line>52</line>
+  <module>GobanReader.app.main</module>
+  <package>com.github.tkirino.gobanreader.corner</package>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/app/src/main/java/com/github/tkirino/gobanreader/corner/CornerScreen.kt" />
+  <problem_class id="AndroidLintAutoboxingStateCreation" severity="WEAK WARNING" attribute_key="INFO_ATTRIBUTES">State&lt;T&gt; will autobox values assigned to this state. Use a specialized state type instead.</problem_class>
+  <hints />
+  <description>&lt;html&gt;Prefer &lt;code&gt;mutableFloatStateOf&lt;/code&gt; instead of &lt;code&gt;mutableStateOf&lt;/code&gt;&lt;/html&gt;</description>
+  <highlighted_element>mutableStateOf</highlighted_element>
+  <language>kotlin</language>
+  <offset>34</offset>
+  <length>14</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/main/java/com/github/tkirino/gobanreader/corner/CornerScreen.kt</file>
+  <line>53</line>
+  <module>GobanReader.app.main</module>
+  <package>com.github.tkirino.gobanreader.corner</package>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/app/src/main/java/com/github/tkirino/gobanreader/corner/CornerScreen.kt" />
+  <problem_class id="AndroidLintAutoboxingStateCreation" severity="WEAK WARNING" attribute_key="INFO_ATTRIBUTES">State&lt;T&gt; will autobox values assigned to this state. Use a specialized state type instead.</problem_class>
+  <hints />
+  <description>&lt;html&gt;Prefer &lt;code&gt;mutableFloatStateOf&lt;/code&gt; instead of &lt;code&gt;mutableStateOf&lt;/code&gt;&lt;/html&gt;</description>
+  <highlighted_element>mutableStateOf</highlighted_element>
+  <language>kotlin</language>
+  <offset>35</offset>
+  <length>14</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/main/java/com/github/tkirino/gobanreader/corner/CornerScreen.kt</file>
+  <line>54</line>
+  <module>GobanReader.app.main</module>
+  <package>com.github.tkirino.gobanreader.corner</package>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/app/src/main/java/com/github/tkirino/gobanreader/corner/CornerScreen.kt" />
+  <problem_class id="AndroidLintAutoboxingStateCreation" severity="WEAK WARNING" attribute_key="INFO_ATTRIBUTES">State&lt;T&gt; will autobox values assigned to this state. Use a specialized state type instead.</problem_class>
+  <hints />
+  <description>&lt;html&gt;Prefer &lt;code&gt;mutableFloatStateOf&lt;/code&gt; instead of &lt;code&gt;mutableStateOf&lt;/code&gt;&lt;/html&gt;</description>
+  <highlighted_element>mutableStateOf</highlighted_element>
+  <language>kotlin</language>
+  <offset>32</offset>
+  <length>14</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/main/java/com/github/tkirino/gobanreader/corner/CornerScreen.kt</file>
+  <line>55</line>
+  <module>GobanReader.app.main</module>
+  <package>com.github.tkirino.gobanreader.corner</package>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/app/src/main/java/com/github/tkirino/gobanreader/corner/CornerScreen.kt" />
+  <problem_class id="AndroidLintAutoboxingStateCreation" severity="WEAK WARNING" attribute_key="INFO_ATTRIBUTES">State&lt;T&gt; will autobox values assigned to this state. Use a specialized state type instead.</problem_class>
+  <hints />
+  <description>&lt;html&gt;Prefer &lt;code&gt;mutableFloatStateOf&lt;/code&gt; instead of &lt;code&gt;mutableStateOf&lt;/code&gt;&lt;/html&gt;</description>
+  <highlighted_element>mutableStateOf</highlighted_element>
+  <language>kotlin</language>
+  <offset>33</offset>
+  <length>14</length>
+</problem>
+</problems>

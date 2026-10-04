@@ -1,0 +1,50 @@
+<problems>
+<problem>
+  <file>file://$PROJECT_DIR$/gradle/libs.versions.toml</file>
+  <line>25</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/gradle/libs.versions.toml" />
+  <problem_class id="UnusedVersionCatalogEntry" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">Unused version catalog entry</problem_class>
+  <description>Dependency alias 'androidx-lifecycle-runtime-compose' is not used in build scripts</description>
+  <highlighted_element>androidx-lifecycle-runtime-compose</highlighted_element>
+  <language>TOML</language>
+  <offset>0</offset>
+  <length>34</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/gradle/libs.versions.toml</file>
+  <line>26</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/gradle/libs.versions.toml" />
+  <problem_class id="UnusedVersionCatalogEntry" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">Unused version catalog entry</problem_class>
+  <description>Dependency alias 'androidx-lifecycle-viewmodel-compose' is not used in build scripts</description>
+  <highlighted_element>androidx-lifecycle-viewmodel-compose</highlighted_element>
+  <language>TOML</language>
+  <offset>0</offset>
+  <length>36</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/gradle/libs.versions.toml</file>
+  <line>51</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/gradle/libs.versions.toml" />
+  <problem_class id="UnusedVersionCatalogEntry" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">Unused version catalog entry</problem_class>
+  <description>Dependency alias 'pytorch-android-lite' is not used in build scripts</description>
+  <highlighted_element>pytorch-android-lite</highlighted_element>
+  <language>TOML</language>
+  <offset>0</offset>
+  <length>20</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/gradle/libs.versions.toml</file>
+  <line>52</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/gradle/libs.versions.toml" />
+  <problem_class id="UnusedVersionCatalogEntry" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">Unused version catalog entry</problem_class>
+  <description>Dependency alias 'pytorch-android-torchvision-lite' is not used in build scripts</description>
+  <highlighted_element>pytorch-android-torchvision-lite</highlighted_element>
+  <language>TOML</language>
+  <offset>0</offset>
+  <length>32</length>
+</problem>
+</problems>

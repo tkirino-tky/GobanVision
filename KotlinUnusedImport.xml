@@ -1,0 +1,80 @@
+<problems>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/main/java/com/github/tkirino/gobanreader/App.kt</file>
+  <line>17</line>
+  <module>GobanReader.app.main</module>
+  <package>com.github.tkirino.gobanreader</package>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/app/src/main/java/com/github/tkirino/gobanreader/App.kt" />
+  <problem_class id="KotlinUnusedImport" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused import directive</problem_class>
+  <description>Unused import directive</description>
+  <highlighted_element>import java.io.File</highlighted_element>
+  <language>kotlin</language>
+  <offset>0</offset>
+  <length>19</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/main/java/com/github/tkirino/gobanreader/MainViewModel.kt</file>
+  <line>4</line>
+  <module>GobanReader.app.main</module>
+  <package>com.github.tkirino.gobanreader</package>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/app/src/main/java/com/github/tkirino/gobanreader/MainViewModel.kt" />
+  <problem_class id="KotlinUnusedImport" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused import directive</problem_class>
+  <description>Unused import directive</description>
+  <highlighted_element>import android.graphics.Bitmap</highlighted_element>
+  <language>kotlin</language>
+  <offset>0</offset>
+  <length>30</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/main/java/com/github/tkirino/gobanreader/camera/CameraScreen.kt</file>
+  <line>15</line>
+  <module>GobanReader.app.main</module>
+  <package>com.github.tkirino.gobanreader.camera</package>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/app/src/main/java/com/github/tkirino/gobanreader/camera/CameraScreen.kt" />
+  <problem_class id="KotlinUnusedImport" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused import directive</problem_class>
+  <description>Unused import directive</description>
+  <highlighted_element>import androidx.compose.material3.MaterialTheme</highlighted_element>
+  <language>kotlin</language>
+  <offset>0</offset>
+  <length>47</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/main/java/com/github/tkirino/gobanreader/display/GoBoard.kt</file>
+  <line>16</line>
+  <module>GobanReader.app.main</module>
+  <package>com.github.tkirino.gobanreader.display</package>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/app/src/main/java/com/github/tkirino/gobanreader/display/GoBoard.kt" />
+  <problem_class id="KotlinUnusedImport" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused import directive</problem_class>
+  <description>Unused import directive</description>
+  <highlighted_element>import androidx.compose.ui.graphics.toArgb</highlighted_element>
+  <language>kotlin</language>
+  <offset>0</offset>
+  <length>42</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/main/java/com/github/tkirino/gobanreader/export/SgfExportDialog.kt</file>
+  <line>7</line>
+  <module>GobanReader.app.main</module>
+  <package>com.github.tkirino.gobanreader.export</package>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/app/src/main/java/com/github/tkirino/gobanreader/export/SgfExportDialog.kt" />
+  <problem_class id="KotlinUnusedImport" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused import directive</problem_class>
+  <description>Unused import directive</description>
+  <highlighted_element>import androidx.compose.ui.Alignment</highlighted_element>
+  <language>kotlin</language>
+  <offset>0</offset>
+  <length>36</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/main/java/com/github/tkirino/gobanreader/ui/theme/Theme.kt</file>
+  <line>3</line>
+  <module>GobanReader.app.main</module>
+  <package>com.github.tkirino.gobanreader.ui.theme</package>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/app/src/main/java/com/github/tkirino/gobanreader/ui/theme/Theme.kt" />
+  <problem_class id="KotlinUnusedImport" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused import directive</problem_class>
+  <description>Unused import directive</description>
+  <highlighted_element>import android.app.Activity</highlighted_element>
+  <language>kotlin</language>
+  <offset>0</offset>
+  <length>27</length>
+</problem>
+</problems>

@@ -1,0 +1,28 @@
+<problems>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/main/java/com/github/tkirino/gobanreader/display/GoBoard.kt</file>
+  <line>36</line>
+  <module>GobanReader.app.main</module>
+  <package>com.github.tkirino.gobanreader.display</package>
+  <entry_point TYPE="method" FQNAME="com.github.tkirino.gobanreader.display.GoBoardKt void GoBoard(java.util.List&lt;? extends java.util.List&lt;? extends com.github.tkirino.gobanreader.model.StoneColor&gt;&gt; boardMatrix, java.util.List&lt;? extends java.util.List&lt;java.lang.Boolean&gt;&gt; certaintyMatrix, kotlin.jvm.functions.Function2&lt;? super java.lang.Integer,? super java.lang.Integer,kotlin.Unit&gt; onIntersectionClick, androidx.compose.ui.Modifier modifier)" />
+  <problem_class id="UnnecessaryVariable" severity="WEAK WARNING" attribute_key="INFO_ATTRIBUTES">Unnecessary local variable</problem_class>
+  <description>Variable is same as 'cellSize' and can be inlined</description>
+  <highlighted_element>padding</highlighted_element>
+  <language>kotlin</language>
+  <offset>24</offset>
+  <length>7</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/main/java/com/github/tkirino/gobanreader/display/GoBoard.kt</file>
+  <line>51</line>
+  <module>GobanReader.app.main</module>
+  <package>com.github.tkirino.gobanreader.display</package>
+  <entry_point TYPE="method" FQNAME="com.github.tkirino.gobanreader.display.GoBoardKt void GoBoard(java.util.List&lt;? extends java.util.List&lt;? extends com.github.tkirino.gobanreader.model.StoneColor&gt;&gt; boardMatrix, java.util.List&lt;? extends java.util.List&lt;java.lang.Boolean&gt;&gt; certaintyMatrix, kotlin.jvm.functions.Function2&lt;? super java.lang.Integer,? super java.lang.Integer,kotlin.Unit&gt; onIntersectionClick, androidx.compose.ui.Modifier modifier)" />
+  <problem_class id="UnnecessaryVariable" severity="WEAK WARNING" attribute_key="INFO_ATTRIBUTES">Unnecessary local variable</problem_class>
+  <description>Variable is same as 'cellSize' and can be inlined</description>
+  <highlighted_element>padding</highlighted_element>
+  <language>kotlin</language>
+  <offset>12</offset>
+  <length>7</length>
+</problem>
+</problems>

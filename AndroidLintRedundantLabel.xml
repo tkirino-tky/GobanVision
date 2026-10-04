@@ -1,0 +1,15 @@
+<problems>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/main/AndroidManifest.xml</file>
+  <line>21</line>
+  <module>GobanReader.app.main</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/app/src/main/AndroidManifest.xml" />
+  <problem_class id="AndroidLintRedundantLabel" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Redundant label on activity</problem_class>
+  <hints />
+  <description>&lt;html&gt;Redundant label can be removed&lt;/html&gt;</description>
+  <highlighted_element>android:label=&quot;@string/app_name&quot;</highlighted_element>
+  <language>XML</language>
+  <offset>12</offset>
+  <length>32</length>
+</problem>
+</problems>

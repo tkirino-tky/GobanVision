@@ -1,35 +1,7 @@
 package com.github.tkirino.gobanreader.utility
 
-import org.opencv.core.Rect
 import org.opencv.core.Point
 import kotlin.math.hypot
-
-object GeometryUtils {
-    // offsetPercent を引数に追加しました
-    fun calculateGuideRect(width: Double, height: Double, offsetPercent: Double = 0.0): Rect {
-        val guideW = width * 0.8
-        val guideH = guideW * 1.04
-
-        // オフセット分を計算します
-        val offsetW = width * offsetPercent
-        val offsetH = height * offsetPercent
-
-        // 元の枠をベースに、オフセット分だけ拡大（または縮小）させます
-        val actualW = guideW + (offsetW * 2)
-        val actualH = guideH + (offsetH * 2)
-
-        val guideLeft = (width - actualW) / 2.0
-        val guideTop = (height - actualH) / 2.0
-
-        val margin = 2
-        val x = (guideLeft + margin).toInt().coerceIn(0, width.toInt() - 1)
-        val y = (guideTop + margin).toInt().coerceIn(0, height.toInt() - 1)
-        val w = (actualW - margin * 2).toInt().coerceAtMost(width.toInt() - x)
-        val h = (actualH - margin * 2).toInt().coerceAtMost(height.toInt() - y)
-
-        return Rect(x, y, w, h)
-    }
-}
 
 object CornerUtils {
     /**
@@ -57,20 +29,7 @@ object CornerUtils {
         val offsetLeft = lLeft / 36.0
         val offsetRight = lRight / 36.0
 
-        // 3. 各辺の単位ベクトルを計算
-        val topDirX = (tr.x - tl.x) / lTop
-        val topDirY = (tr.y - tl.y) / lTop
-
-        val bottomDirX = (br.x - bl.x) / lBottom
-        val bottomDirY = (br.y - bl.y) / lBottom
-
-        val leftDirX = (bl.x - tl.x) / lLeft
-        val leftDirY = (bl.y - tl.y) / lLeft
-
-        val rightDirX = (br.x - tr.x) / lRight
-        val rightDirY = (br.y - tr.y) / lRight
-
-        // 4. 重心（中心）を基準にして「外側」を向く法線ベクトルを算出し、各辺を平行移動する
+        // 3. 重心（中心）を基準にして「外側」を向く法線ベクトルを算出し、各辺を平行移動する
         val centerX = (tl.x + tr.x + br.x + bl.x) / 4.0
         val centerY = (tl.y + tr.y + br.y + bl.y) / 4.0
 
@@ -127,7 +86,7 @@ object CornerUtils {
         val shiftRightX = sRightX * offsetRight
         val shiftRightY = sRightY * offsetRight
 
-        // 5. 拡張した上下の直線と左右の直線の交点を計算して、新しい4隅を確定する
+        // 4. 拡張した上下の直線と左右の直線の交点を計算して、新しい4隅を確定する
         val newTl = findIntersection(
             exTlX, exTlY, exTrX, exTrY,
             exTlX + shiftLeftX, exTlY + shiftLeftY, exBlX + shiftLeftX, exBlY + shiftLeftY
@@ -158,6 +117,3 @@ object CornerUtils {
         return Point(x1 + ua * (x2 - x1), y1 + ua * (y2 - y1))
     }
 }
-
-
-

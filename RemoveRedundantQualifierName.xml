@@ -1,0 +1,28 @@
+<problems>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/main/java/com/github/tkirino/gobanreader/MainViewModel.kt</file>
+  <line>128</line>
+  <module>GobanReader.app.main</module>
+  <package>com.github.tkirino.gobanreader</package>
+  <entry_point TYPE="method" FQNAME="com.github.tkirino.gobanreader.MainViewModel void loadPhotoForAdjustment(java.lang.String photoPath, kotlin.jvm.functions.Function1&lt;? super java.lang.Boolean,kotlin.Unit&gt; onResult)" />
+  <problem_class id="RemoveRedundantQualifierName" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Redundant qualifier name</problem_class>
+  <description>Remove redundant qualifier name</description>
+  <highlighted_element>android.graphics</highlighted_element>
+  <language>kotlin</language>
+  <offset>26</offset>
+  <length>16</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/main/java/com/github/tkirino/gobanreader/MainViewModel.kt</file>
+  <line>128</line>
+  <module>GobanReader.app.main</module>
+  <package>com.github.tkirino.gobanreader</package>
+  <entry_point TYPE="method" FQNAME="com.github.tkirino.gobanreader.MainViewModel void loadPhotoForAdjustment(java.lang.String photoPath, kotlin.jvm.functions.Function1&lt;? super java.lang.Boolean,kotlin.Unit&gt; onResult)" />
+  <problem_class id="RemoveRedundantQualifierName" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Redundant qualifier name</problem_class>
+  <description>Remove redundant qualifier name</description>
+  <highlighted_element>android.graphics</highlighted_element>
+  <language>kotlin</language>
+  <offset>93</offset>
+  <length>16</length>
+</problem>
+</problems>

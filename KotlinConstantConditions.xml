@@ -1,0 +1,15 @@
+<problems>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/main/java/com/github/tkirino/gobanreader/corner/CornerScreen.kt</file>
+  <line>149</line>
+  <module>GobanReader.app.main</module>
+  <package>com.github.tkirino.gobanreader.corner</package>
+  <entry_point TYPE="method" FQNAME="com.github.tkirino.gobanreader.corner.CornerScreenKt void CornerScreen(com.github.tkirino.gobanreader.MainViewModel viewModel, android.graphics.Bitmap bitmap, java.util.List&lt;? extends org.opencv.core.Point&gt; initialCorners, java.util.List&lt;? extends org.opencv.core.Point&gt; rawDetection, kotlin.jvm.functions.Function1&lt;? super java.util.List&lt;? extends org.opencv.core.Point&gt;,kotlin.Unit&gt; onConfirmed, kotlin.jvm.functions.Function0&lt;kotlin.Unit&gt; onBack)" />
+  <problem_class id="KotlinConstantConditions" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Constant conditions</problem_class>
+  <description>Condition 'corners.isNotEmpty()' is always true</description>
+  <highlighted_element>corners.isNotEmpty()</highlighted_element>
+  <language>kotlin</language>
+  <offset>24</offset>
+  <length>20</length>
+</problem>
+</problems>

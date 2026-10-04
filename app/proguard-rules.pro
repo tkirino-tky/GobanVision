@@ -19,3 +19,9 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# Releaseビルド時に Debug / Verbose ログの呼び出しコードを完全に消去する
+-assumenosideeffects class android.util.Log {
+    public static int d(...);
+    public static int v(...);
+}

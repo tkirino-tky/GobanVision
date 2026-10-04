@@ -1,0 +1,26 @@
+<problems>
+<problem>
+  <file>GobanReader.app.androidTest</file>
+  <module>GobanReader.app.androidTest</module>
+  <entry_point TYPE="module" FQNAME="GobanReader.app.androidTest" />
+  <problem_class id="UnnecessaryModuleDependencyInspection" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unnecessary module dependency</problem_class>
+  <hints>
+    <hint value="GobanReader.app.main" />
+  </hints>
+  <description>Module 'GobanReader.app.androidTest' sources do not depend on module 'GobanReader.app.main' sources</description>
+  <highlighted_element />
+  <language />
+</problem>
+<problem>
+  <file>GobanReader.app.unitTest</file>
+  <module>GobanReader.app.unitTest</module>
+  <entry_point TYPE="module" FQNAME="GobanReader.app.unitTest" />
+  <problem_class id="UnnecessaryModuleDependencyInspection" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unnecessary module dependency</problem_class>
+  <hints>
+    <hint value="GobanReader.app.main" />
+  </hints>
+  <description>Module 'GobanReader.app.unitTest' sources do not depend on module 'GobanReader.app.main' sources</description>
+  <highlighted_element />
+  <language />
+</problem>
+</problems>

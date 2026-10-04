@@ -1,0 +1,16 @@
+<problems>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/main/java/com/github/tkirino/gobanreader/config/DebugConfig.kt</file>
+  <line>7</line>
+  <module>GobanReader.app.main</module>
+  <package>com.github.tkirino.gobanreader.config</package>
+  <entry_point TYPE="method" FQNAME="com.github.tkirino.gobanreader.config.DebugConfig boolean isEnabled()" />
+  <problem_class id="SameReturnValue" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Method always returns the same value</problem_class>
+  <hints />
+  <description>Method &lt;code&gt;get()&lt;/code&gt; always returns &lt;code&gt;com.github.tkirino.gobanreader.BuildConfig.DEBUG&lt;/code&gt;</description>
+  <highlighted_element>get</highlighted_element>
+  <language>kotlin</language>
+  <offset>27</offset>
+  <length>3</length>
+</problem>
+</problems>

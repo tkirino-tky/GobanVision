@@ -1,0 +1,72 @@
+<problems>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/main/java/com/github/tkirino/gobanreader/MainViewModel.kt</file>
+  <line>128</line>
+  <module>GobanReader.app.main</module>
+  <package>com.github.tkirino.gobanreader</package>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/app/src/main/java/com/github/tkirino/gobanreader/MainViewModel.kt" />
+  <problem_class id="AndroidLintUseKtx" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Use KTX extension function</problem_class>
+  <hints />
+  <description>&lt;html&gt;Use the KTX function &lt;code&gt;createBitmap&lt;/code&gt; instead?&lt;/html&gt;</description>
+  <highlighted_element>android.graphics.Bitmap.createBitmap(rgbMat.cols(), rgbMat.rows(), android.graphics.Bitmap.Config.AR...</highlighted_element>
+  <language>kotlin</language>
+  <offset>26</offset>
+  <length>108</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/main/java/com/github/tkirino/gobanreader/stones/CnnStoneDetector.kt</file>
+  <line>182</line>
+  <module>GobanReader.app.main</module>
+  <package>com.github.tkirino.gobanreader.stones</package>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/app/src/main/java/com/github/tkirino/gobanreader/stones/CnnStoneDetector.kt" />
+  <problem_class id="AndroidLintUseKtx" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Use KTX extension function</problem_class>
+  <hints />
+  <description>&lt;html&gt;Use the KTX function &lt;code&gt;createBitmap&lt;/code&gt; instead?&lt;/html&gt;</description>
+  <highlighted_element>Bitmap.createBitmap(rgbMat.cols(), rgbMat.rows(), Bitmap.Config.ARGB_8888)</highlighted_element>
+  <language>kotlin</language>
+  <offset>27</offset>
+  <length>74</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/main/java/com/github/tkirino/gobanreader/utility/GobanUtils.kt</file>
+  <line>23</line>
+  <module>GobanReader.app.main</module>
+  <package>com.github.tkirino.gobanreader.utility</package>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/app/src/main/java/com/github/tkirino/gobanreader/utility/GobanUtils.kt" />
+  <problem_class id="AndroidLintUseKtx" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Use KTX extension function</problem_class>
+  <hints />
+  <description>&lt;html&gt;Use the KTX function &lt;code&gt;createBitmap&lt;/code&gt; instead?&lt;/html&gt;</description>
+  <highlighted_element>Bitmap.createBitmap(mat.cols(), mat.rows(), Bitmap.Config.ARGB_8888)</highlighted_element>
+  <language>kotlin</language>
+  <offset>21</offset>
+  <length>68</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/main/java/com/github/tkirino/gobanreader/utility/PreferenceManager.kt</file>
+  <line>19</line>
+  <module>GobanReader.app.main</module>
+  <package>com.github.tkirino.gobanreader.utility</package>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/app/src/main/java/com/github/tkirino/gobanreader/utility/PreferenceManager.kt" />
+  <problem_class id="AndroidLintUseKtx" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Use KTX extension function</problem_class>
+  <hints />
+  <description>&lt;html&gt;Use the KTX extension function &lt;code&gt;SharedPreferences.edit&lt;/code&gt; instead?&lt;/html&gt;</description>
+  <highlighted_element>getPrefs(context).edit()</highlighted_element>
+  <language>kotlin</language>
+  <offset>8</offset>
+  <length>24</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/main/java/com/github/tkirino/gobanreader/vision/YoloCornerDetector.kt</file>
+  <line>47</line>
+  <module>GobanReader.app.main</module>
+  <package>com.github.tkirino.gobanreader.vision</package>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/app/src/main/java/com/github/tkirino/gobanreader/vision/YoloCornerDetector.kt" />
+  <problem_class id="AndroidLintUseKtx" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Use KTX extension function</problem_class>
+  <hints />
+  <description>&lt;html&gt;Use the KTX function &lt;code&gt;createBitmap&lt;/code&gt; instead?&lt;/html&gt;</description>
+  <highlighted_element>Bitmap.createBitmap(inputSize, inputSize, Bitmap.Config.ARGB_8888)</highlighted_element>
+  <language>kotlin</language>
+  <offset>21</offset>
+  <length>66</length>
+</problem>
+</problems>

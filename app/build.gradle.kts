@@ -13,7 +13,7 @@ android {
 
     defaultConfig {
         applicationId = "com.github.tkirino.gobanreader"
-        minSdk = 29
+        minSdk = 30
         targetSdk = 35
         versionCode = 2
         versionName = "1.0.1"
@@ -34,7 +34,7 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true // R8によるコード最適化・難読化を有効化
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"

@@ -1,0 +1,15 @@
+<problems>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/main/java/com/github/tkirino/gobanreader/camera/Camera2Manager.kt</file>
+  <line>15</line>
+  <module>GobanReader.app.main</module>
+  <package>com.github.tkirino.gobanreader.camera</package>
+  <entry_point TYPE="method" FQNAME="com.github.tkirino.gobanreader.camera.Camera2Manager Camera2Manager(android.content.Context context)" />
+  <problem_class id="CanBeParameter" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Constructor parameter is never used as a property</problem_class>
+  <description>Constructor parameter is never used as a property</description>
+  <highlighted_element>val</highlighted_element>
+  <language>kotlin</language>
+  <offset>29</offset>
+  <length>3</length>
+</problem>
+</problems>

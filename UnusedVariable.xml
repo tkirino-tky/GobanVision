@@ -1,0 +1,119 @@
+<problems>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/main/java/com/github/tkirino/gobanreader/App.kt</file>
+  <line>24</line>
+  <module>GobanReader.app.main</module>
+  <package>com.github.tkirino.gobanreader</package>
+  <entry_point TYPE="method" FQNAME="com.github.tkirino.gobanreader.AppKt void App(com.github.tkirino.gobanreader.MainViewModel viewModel, kotlin.jvm.functions.Function1&lt;? super java.lang.Boolean,kotlin.Unit&gt; onCameraScreenChanged)" />
+  <problem_class id="UnusedVariable" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused variable</problem_class>
+  <description>Unused variable</description>
+  <highlighted_element>context</highlighted_element>
+  <language>kotlin</language>
+  <offset>8</offset>
+  <length>7</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/main/java/com/github/tkirino/gobanreader/utility/GeometryUtils.kt</file>
+  <line>61</line>
+  <module>GobanReader.app.main</module>
+  <package>com.github.tkirino.gobanreader.utility</package>
+  <entry_point TYPE="method" FQNAME="com.github.tkirino.gobanreader.utility.CornerUtils java.util.List&lt;org.opencv.core.Point&gt; calculateExpandedCorners(java.util.List&lt;? extends org.opencv.core.Point&gt; corners)" />
+  <problem_class id="UnusedVariable" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused variable</problem_class>
+  <description>Unused variable</description>
+  <highlighted_element>topDirX</highlighted_element>
+  <language>kotlin</language>
+  <offset>12</offset>
+  <length>7</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/main/java/com/github/tkirino/gobanreader/utility/GeometryUtils.kt</file>
+  <line>62</line>
+  <module>GobanReader.app.main</module>
+  <package>com.github.tkirino.gobanreader.utility</package>
+  <entry_point TYPE="method" FQNAME="com.github.tkirino.gobanreader.utility.CornerUtils java.util.List&lt;org.opencv.core.Point&gt; calculateExpandedCorners(java.util.List&lt;? extends org.opencv.core.Point&gt; corners)" />
+  <problem_class id="UnusedVariable" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused variable</problem_class>
+  <description>Unused variable</description>
+  <highlighted_element>topDirY</highlighted_element>
+  <language>kotlin</language>
+  <offset>12</offset>
+  <length>7</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/main/java/com/github/tkirino/gobanreader/utility/GeometryUtils.kt</file>
+  <line>64</line>
+  <module>GobanReader.app.main</module>
+  <package>com.github.tkirino.gobanreader.utility</package>
+  <entry_point TYPE="method" FQNAME="com.github.tkirino.gobanreader.utility.CornerUtils java.util.List&lt;org.opencv.core.Point&gt; calculateExpandedCorners(java.util.List&lt;? extends org.opencv.core.Point&gt; corners)" />
+  <problem_class id="UnusedVariable" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused variable</problem_class>
+  <description>Unused variable</description>
+  <highlighted_element>bottomDirX</highlighted_element>
+  <language>kotlin</language>
+  <offset>12</offset>
+  <length>10</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/main/java/com/github/tkirino/gobanreader/utility/GeometryUtils.kt</file>
+  <line>65</line>
+  <module>GobanReader.app.main</module>
+  <package>com.github.tkirino.gobanreader.utility</package>
+  <entry_point TYPE="method" FQNAME="com.github.tkirino.gobanreader.utility.CornerUtils java.util.List&lt;org.opencv.core.Point&gt; calculateExpandedCorners(java.util.List&lt;? extends org.opencv.core.Point&gt; corners)" />
+  <problem_class id="UnusedVariable" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused variable</problem_class>
+  <description>Unused variable</description>
+  <highlighted_element>bottomDirY</highlighted_element>
+  <language>kotlin</language>
+  <offset>12</offset>
+  <length>10</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/main/java/com/github/tkirino/gobanreader/utility/GeometryUtils.kt</file>
+  <line>67</line>
+  <module>GobanReader.app.main</module>
+  <package>com.github.tkirino.gobanreader.utility</package>
+  <entry_point TYPE="method" FQNAME="com.github.tkirino.gobanreader.utility.CornerUtils java.util.List&lt;org.opencv.core.Point&gt; calculateExpandedCorners(java.util.List&lt;? extends org.opencv.core.Point&gt; corners)" />
+  <problem_class id="UnusedVariable" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused variable</problem_class>
+  <description>Unused variable</description>
+  <highlighted_element>leftDirX</highlighted_element>
+  <language>kotlin</language>
+  <offset>12</offset>
+  <length>8</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/main/java/com/github/tkirino/gobanreader/utility/GeometryUtils.kt</file>
+  <line>68</line>
+  <module>GobanReader.app.main</module>
+  <package>com.github.tkirino.gobanreader.utility</package>
+  <entry_point TYPE="method" FQNAME="com.github.tkirino.gobanreader.utility.CornerUtils java.util.List&lt;org.opencv.core.Point&gt; calculateExpandedCorners(java.util.List&lt;? extends org.opencv.core.Point&gt; corners)" />
+  <problem_class id="UnusedVariable" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused variable</problem_class>
+  <description>Unused variable</description>
+  <highlighted_element>leftDirY</highlighted_element>
+  <language>kotlin</language>
+  <offset>12</offset>
+  <length>8</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/main/java/com/github/tkirino/gobanreader/utility/GeometryUtils.kt</file>
+  <line>70</line>
+  <module>GobanReader.app.main</module>
+  <package>com.github.tkirino.gobanreader.utility</package>
+  <entry_point TYPE="method" FQNAME="com.github.tkirino.gobanreader.utility.CornerUtils java.util.List&lt;org.opencv.core.Point&gt; calculateExpandedCorners(java.util.List&lt;? extends org.opencv.core.Point&gt; corners)" />
+  <problem_class id="UnusedVariable" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused variable</problem_class>
+  <description>Unused variable</description>
+  <highlighted_element>rightDirX</highlighted_element>
+  <language>kotlin</language>
+  <offset>12</offset>
+  <length>9</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/main/java/com/github/tkirino/gobanreader/utility/GeometryUtils.kt</file>
+  <line>71</line>
+  <module>GobanReader.app.main</module>
+  <package>com.github.tkirino.gobanreader.utility</package>
+  <entry_point TYPE="method" FQNAME="com.github.tkirino.gobanreader.utility.CornerUtils java.util.List&lt;org.opencv.core.Point&gt; calculateExpandedCorners(java.util.List&lt;? extends org.opencv.core.Point&gt; corners)" />
+  <problem_class id="UnusedVariable" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused variable</problem_class>
+  <description>Unused variable</description>
+  <highlighted_element>rightDirY</highlighted_element>
+  <language>kotlin</language>
+  <offset>12</offset>
+  <length>9</length>
+</problem>
+</problems>

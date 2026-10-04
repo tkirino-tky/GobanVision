@@ -1,0 +1,16 @@
+<problems>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/main/java/com/github/tkirino/gobanreader/stones/CnnStoneDetector.kt</file>
+  <line>225</line>
+  <module>GobanReader.app.main</module>
+  <package>com.github.tkirino.gobanreader.stones</package>
+  <entry_point TYPE="method" FQNAME="com.github.tkirino.gobanreader.stones.CnnStoneDetector void exportInferenceScoresToCsv(int boardSize, float[][][] maxConfidencePerClassMap, com.github.tkirino.gobanreader.model.StoneColor[][] finalColors, java.lang.Boolean[][] certaintyMap)" />
+  <problem_class id="SameParameterValue" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Method parameter always has the same value</problem_class>
+  <hints />
+  <description>Value of parameter &lt;code&gt;boardSize&lt;/code&gt; is always '19'</description>
+  <highlighted_element>boardSize</highlighted_element>
+  <language>kotlin</language>
+  <offset>8</offset>
+  <length>9</length>
+</problem>
+</problems>

@@ -1,0 +1,806 @@
+<problems>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>1516</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>284</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>1535</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>409</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>1599</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>297</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>1609</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>287</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>1634</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>301</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>1635</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>541</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>1647</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>688</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>1647</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>1376</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>1652</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>688</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>1652</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>1376</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>1663</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>333</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>1664</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>565</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>1664</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>1181</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>1664</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>1816</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>1664</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>2439</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>1668</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>333</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>1669</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>565</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>1669</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>1181</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>1669</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>1816</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>1669</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>2439</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>1711</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>299</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>1730</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>355</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>1742</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>355</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>1929</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>343</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>1984</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>342</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>2017</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>325</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>2066</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>275</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>2077</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>277</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>2093</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>297</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>2126</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>340</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>2137</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>322</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>2153</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>289</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>2188</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>348</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>2206</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>348</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>2224</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>348</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>2242</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>348</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>2260</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>348</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>2278</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>348</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>2296</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>348</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>2314</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>348</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>2343</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>409</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>2359</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>321</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>2378</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>315</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>2562</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>343</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>2573</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>409</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>2586</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>409</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>2599</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>409</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>2612</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>310</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>2625</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>310</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>2638</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>310</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>2651</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>404</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>2741</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>380</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>2893</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>325</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>2906</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>325</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>2919</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>325</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>3049</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>302</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>3061</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>302</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>3078</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>398</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>3398</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>340</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>3411</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>340</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>3424</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>340</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>3437</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>322</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>3453</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>310</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>3467</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>310</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>3481</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>310</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>3495</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>310</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/index.html</file>
+  <line>4390</line>
+  <module>GobanReader</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/index.html" />
+  <problem_class id="HtmlUnknownAttribute" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unknown attribute</problem_class>
+  <description>Attribute qualifiedname is not allowed here</description>
+  <highlighted_element>qualifiedname</highlighted_element>
+  <language>XML</language>
+  <offset>333</offset>
+  <length>13</length>
+</problem>
+</problems>

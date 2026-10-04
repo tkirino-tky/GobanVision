@@ -1,0 +1,28 @@
+<problems>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/main/java/com/github/tkirino/gobanreader/MainViewModel.kt</file>
+  <line>224</line>
+  <module>GobanReader.app.main</module>
+  <package>com.github.tkirino.gobanreader</package>
+  <entry_point TYPE="method" FQNAME="com.github.tkirino.gobanreader.MainViewModel void processWithCorners(java.util.List&lt;? extends org.opencv.core.Point&gt; corners)" />
+  <problem_class id="SimplifyBooleanWithConstants" severity="WEAK WARNING" attribute_key="INFO_ATTRIBUTES">Boolean expression can be simplified</problem_class>
+  <description>Boolean expression can be simplified</description>
+  <highlighted_element>DebugConfig.isEnabled &amp;&amp; DebugConfig.CNN_TRAINING_DATA_EXPORT</highlighted_element>
+  <language>kotlin</language>
+  <offset>24</offset>
+  <length>61</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/main/java/com/github/tkirino/gobanreader/stones/CnnStoneDetector.kt</file>
+  <line>230</line>
+  <module>GobanReader.app.main</module>
+  <package>com.github.tkirino.gobanreader.stones</package>
+  <entry_point TYPE="method" FQNAME="com.github.tkirino.gobanreader.stones.CnnStoneDetector void exportInferenceScoresToCsv(int boardSize, float[][][] maxConfidencePerClassMap, com.github.tkirino.gobanreader.model.StoneColor[][] finalColors, java.lang.Boolean[][] certaintyMap)" />
+  <problem_class id="SimplifyBooleanWithConstants" severity="WEAK WARNING" attribute_key="INFO_ATTRIBUTES">Boolean expression can be simplified</problem_class>
+  <description>Boolean expression can be simplified</description>
+  <highlighted_element>!DebugConfig.isEnabled || !DebugConfig.EXPORT_INFERENCE_SCORES_CSV</highlighted_element>
+  <language>kotlin</language>
+  <offset>12</offset>
+  <length>66</length>
+</problem>
+</problems>

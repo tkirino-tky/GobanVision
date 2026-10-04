@@ -1,0 +1,39 @@
+<problems>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/main/java/com/github/tkirino/gobanreader/camera/Camera2Manager.kt</file>
+  <line>87</line>
+  <module>GobanReader.app.main</module>
+  <package>com.github.tkirino.gobanreader.camera</package>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/app/src/main/java/com/github/tkirino/gobanreader/camera/Camera2Manager.kt" />
+  <problem_class id="AndroidLintObsoleteSdkInt" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Obsolete SDK_INT Version Check</problem_class>
+  <hints />
+  <description>&lt;html&gt;Unnecessary; &lt;code&gt;SDK_INT&lt;/code&gt; is always &gt;= 30&lt;/html&gt;</description>
+  <highlighted_element>Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.P</highlighted_element>
+  <language>kotlin</language>
+  <offset>46</offset>
+  <length>46</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/main/java/com/github/tkirino/gobanreader/camera/Camera2Manager.kt</file>
+  <line>134</line>
+  <module>GobanReader.app.main</module>
+  <package>com.github.tkirino.gobanreader.camera</package>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/app/src/main/java/com/github/tkirino/gobanreader/camera/Camera2Manager.kt" />
+  <problem_class id="AndroidLintObsoleteSdkInt" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Obsolete SDK_INT Version Check</problem_class>
+  <hints />
+  <description>&lt;html&gt;Unnecessary; &lt;code&gt;SDK_INT&lt;/code&gt; is always &gt;= 30&lt;/html&gt;</description>
+  <highlighted_element>Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.R</highlighted_element>
+  <language>kotlin</language>
+  <offset>47</offset>
+  <length>46</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/app/src/main/res/mipmap-anydpi-v26</file>
+  <entry_point TYPE="dir" FQNAME="$PROJECT_DIR$/app/src/main/res/mipmap-anydpi-v26" />
+  <problem_class id="AndroidLintObsoleteSdkInt" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Obsolete SDK_INT Version Check</problem_class>
+  <hints />
+  <description>&lt;html&gt;This folder configuration (&lt;code&gt;v26&lt;/code&gt;) is unnecessary; &lt;code&gt;minSdkVersion&lt;/code&gt; is 30. Merge all the resources in this folder into &lt;code&gt;mipmap-anydpi&lt;/code&gt;.&lt;/html&gt;</description>
+  <highlighted_element />
+  <language />
+</problem>
+</problems>
