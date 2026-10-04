@@ -156,7 +156,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
                 withContext(Dispatchers.Main) {
                     isCornerQualityGood = false
-                    cornerQualityMessage = "手動でコーナーの位置を補正してください"
+                    cornerQualityMessage = "コーナー位置を補正してください"
 
                     val initialCorners = if (detectionResult != null && detectionResult.corners.size == 4) {
                         detectionResult.corners

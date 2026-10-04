@@ -1,7 +1,9 @@
 package com.github.tkirino.gobanreader.stones
 
 import android.graphics.Bitmap
+import android.os.Environment
 import android.util.Log
+import com.github.tkirino.gobanreader.config.DebugConfig
 import com.github.tkirino.gobanreader.model.StoneColor
 import org.opencv.android.Utils
 import org.opencv.core.Core
@@ -11,8 +13,12 @@ import org.opencv.core.Rect
 import org.opencv.core.Size
 import org.opencv.imgproc.Imgproc
 import org.tensorflow.lite.Interpreter
+import java.io.File
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 data class DetectionResult(
     val color: StoneColor,
@@ -94,9 +100,11 @@ class CnnStoneDetector(private val interpreter: Interpreter) {
             return Pair(boardLayout.map { it.toList() }, certaintyLayout.map { it.toList() })
         }
 
+        val probsMap = frameProbsList[0]
+
         for (row in 0 until 19) {
             for (col in 0 until 19) {
-                val probs = frameProbsList[0][row][col]
+                val probs = probsMap[row][col]
 
                 var maxIndex = 0
                 var maxVal = probs[0]
@@ -107,9 +115,10 @@ class CnnStoneDetector(private val interpreter: Interpreter) {
                     }
                 }
 
-                // ★ 光飛び対策安全フィルタ：
-                // 白石(INDEX_WHITE)と判定されても確率が0.80未満の場合はノイズとみなしEMPTY（空白）へ変換
                 var winningClass = maxIndex
+
+                // ★【光飛び対策安全フィルタ：偽白石防止】
+                // 白石(INDEX_WHITE)と判定されても確率が0.80未満の場合はノイズとみなしEMPTY（空白）へ変換
                 if (winningClass == INDEX_WHITE && maxVal < confidenceThreshold) {
                     winningClass = INDEX_EMPTY
                 }
@@ -120,12 +129,32 @@ class CnnStoneDetector(private val interpreter: Interpreter) {
                     else -> StoneColor.EMPTY
                 }
 
-                val isCertain = if (winningClass == INDEX_EMPTY) true else (maxVal >= confidenceThreshold)
+                // ★【光飛び対策安全フィルタ：黒石ハイライト補正】
+                // 黒石と判定され、確率が 0.80 未満であっても、白石の確率が極めて低い（0.05未満）場合は
+                // 表面テカリ（ハイライト）によるスコア下落とみなし確信度 true（？なし）とする
+                val isCertain = when (winningClass) {
+                    INDEX_EMPTY -> true
+                    INDEX_BLACK -> {
+                        val whiteScore = probs[INDEX_WHITE]
+                        (maxVal >= confidenceThreshold) || (whiteScore < 0.05f)
+                    }
+                    else -> (maxVal >= confidenceThreshold)
+                }
 
                 boardLayout[row][col] = predictedColor
                 certaintyLayout[row][col] = isCertain
             }
         }
+
+        // ★ CSVファイル出力の実行（Download/DebugLogs/ へ出力）
+        val boardArray = Array(19) { r -> Array(19) { c -> boardLayout[r][c] } }
+        val certaintyArray = Array(19) { r -> Array(19) { c -> certaintyLayout[r][c] } }
+        exportInferenceScoresToCsv(
+            boardSize = 19,
+            maxConfidencePerClassMap = probsMap,
+            finalColors = boardArray,
+            certaintyMap = certaintyArray
+        )
 
         return Pair(boardLayout.map { it.toList() }, certaintyLayout.map { it.toList() })
     }
@@ -186,5 +215,51 @@ class CnnStoneDetector(private val interpreter: Interpreter) {
     ): Pair<List<List<StoneColor>>, List<List<Boolean>>> {
         val singleProbs = predictProbabilities(rectifiedMat, geometryGrid)
         return aggregateInferences(listOf(singleProbs))
+    }
+
+    /**
+     * 全交点の推論結果・事後確率スコアをCSVファイルに出力するデバッグ関数
+     * （Context不要で Download/DebugLogs フォルダへ直接書き出し）
+     */
+    private fun exportInferenceScoresToCsv(
+        boardSize: Int = 19,
+        maxConfidencePerClassMap: Array<Array<FloatArray>>, // [row][col][0:EMPTY, 1:BLACK, 2:WHITE]
+        finalColors: Array<Array<StoneColor>>,
+        certaintyMap: Array<Array<Boolean>>
+    ) {
+        if (!DebugConfig.isEnabled || !DebugConfig.EXPORT_INFERENCE_SCORES_CSV) return
+
+        try {
+            val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+            val fileName = "inference_scores_$timeStamp.csv"
+
+            val downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+            val debugLogsDir = File(downloadDir, "DebugLogs")
+            if (!debugLogsDir.exists()) debugLogsDir.mkdirs()
+
+            val file = File(debugLogsDir, fileName)
+
+            file.bufferedWriter().use { writer ->
+                writer.write("row,col,score_empty,score_black,score_white,final_color,is_certain\n")
+
+                for (row in 0 until boardSize) {
+                    for (col in 0 until boardSize) {
+                        val scores = maxConfidencePerClassMap[row][col]
+                        val emptyScore = scores[0]
+                        val blackScore = scores[1]
+                        val whiteScore = scores[2]
+                        val finalColor = finalColors[row][col].name
+                        val isCertain = certaintyMap[row][col]
+
+                        writer.write("$row,$col,%.4f,%.4f,%.4f,$finalColor,$isCertain\n".format(
+                            Locale.US, emptyScore, blackScore, whiteScore
+                        ))
+                    }
+                }
+            }
+            Log.d("CnnStoneDetector", "Inference scores CSV exported to: ${file.absolutePath}")
+        } catch (e: Exception) {
+            Log.e("CnnStoneDetector", "Failed to export CSV: ${e.message}", e)
+        }
     }
 }

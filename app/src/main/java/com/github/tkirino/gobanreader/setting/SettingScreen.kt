@@ -29,15 +29,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.github.tkirino.gobanreader.MainViewModel
 import com.github.tkirino.gobanreader.utility.PreferencesManager
@@ -48,8 +45,7 @@ fun SettingScreen(
     viewModel: MainViewModel,
     onBlackPlayerChanged: (String) -> Unit,
     onWhitePlayerChanged: (String) -> Unit,
-    onGetGobanClick: () -> Unit,
-    onHistoryClick: () -> Unit,
+    onBackClick: () -> Unit, // ★ 呼び出し元画面へ戻るアクション
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -60,10 +56,8 @@ fun SettingScreen(
     var isHandicapExpanded by remember { mutableStateOf(false) }
     var isKomiExpanded by remember { mutableStateOf(false) }
 
-    // 保存済みの送信先メールアドレスを保持・管理
     var recipientEmail by remember { mutableStateOf("") }
 
-    // PreferencesManagerの関数名に合わせて修正 (getSavedEmail)
     LaunchedEffect(Unit) {
         recipientEmail = PreferencesManager.getSavedEmail(context)
     }
@@ -78,27 +72,10 @@ fun SettingScreen(
         modifier = modifier
             .fillMaxSize()
             .navigationBarsPadding()
-            .padding(16.dp)
+            .padding(horizontal = 16.dp, vertical = 8.dp)
             .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Text(
-            text = "GobanReader",
-            style = MaterialTheme.typography.displaySmall.copy(
-                fontWeight = FontWeight.Bold,
-                fontSize = 40.sp
-            ),
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.CenterHorizontally),
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
         Text(
             text = "対局情報の入力",
             style = MaterialTheme.typography.headlineMedium
@@ -176,7 +153,7 @@ fun SettingScreen(
         }
 
         // 次の手番選択
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(
                 text = "次の手番 (必須)",
                 style = MaterialTheme.typography.bodySmall,
@@ -220,7 +197,7 @@ fun SettingScreen(
             }
         }
 
-        HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+        HorizontalDivider(modifier = Modifier.padding(vertical = 2.dp))
 
         // 対局者名（黒）
         OutlinedTextField(
@@ -261,16 +238,16 @@ fun SettingScreen(
             modifier = Modifier.fillMaxWidth()
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(4.dp))
 
-        // カメラ画面への遷移ボタン
+        // ★ 元の画面（カメラ画面または結果表示画面）へ戻るボタン
         Button(
-            onClick = onGetGobanClick,
+            onClick = onBackClick,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(56.dp)
+                .height(50.dp)
         ) {
-            Text("碁盤を撮影する", style = MaterialTheme.typography.titleMedium)
+            Text("設定完了（戻る）", style = MaterialTheme.typography.titleMedium)
         }
     }
 }

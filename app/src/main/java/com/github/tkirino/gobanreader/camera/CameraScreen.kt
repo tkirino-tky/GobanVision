@@ -12,6 +12,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -24,6 +25,8 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -67,16 +70,13 @@ fun CameraScreen(
 
     var isCapturing by remember { mutableStateOf(false) }
 
-    // リアルタイム検出用のステート
     var detectedCorners by remember { mutableStateOf<List<Point>?>(null) }
     var isDetecting by remember { mutableStateOf(false) }
     var lastDetectionTime by remember { mutableLongStateOf(0L) }
 
-    // 発熱対策：連続未検出カウントと動的サンプリング間隔 (ms)
     var missCount by remember { mutableIntStateOf(0) }
     var currentIntervalMs by remember { mutableLongStateOf(100L) }
 
-    // 検出成功時の画像と原寸座標をフリーズ保持（手振れ・決定時ズレ対策）
     var lastDetectedBitmap by remember { mutableStateOf<Bitmap?>(null) }
     var lastDetectedRawCorners by remember { mutableStateOf<List<Point>?>(null) }
 
@@ -110,7 +110,6 @@ fun CameraScreen(
         textureView.setTransform(matrix)
     }
 
-    // リアルタイムYOLO推論処理（動的サンプリング付き）
     fun processFrameForCorners(textureView: TextureView) {
         val currentTime = System.currentTimeMillis()
         if (isDetecting || isCapturing || currentTime - lastDetectionTime < currentIntervalMs) return
@@ -148,7 +147,6 @@ fun CameraScreen(
 
                 croppedMat.release()
 
-                // CameraScreen.kt の processFrameForCorners 内（成功時ブロック）
                 withContext(Dispatchers.Main) {
                     if (result != null && result.corners.size == 4) {
                         missCount = 0
@@ -162,16 +160,12 @@ fun CameraScreen(
                         lastDetectedBitmap = squareBitmap
                         lastDetectedRawCorners = result.corners
 
-                        // ★以下の行を削除（またはコメントアウト）してください
-                        // viewModel.pushFrameForInference(squareBitmap, result.corners)
-
                         if (rawBitmap != bitmap && !bitmap.isRecycled) bitmap.recycle()
                     } else {
-                        // 検出失敗時：段階的にサンプリング間隔を伸ばす（発熱抑制）
                         missCount++
                         currentIntervalMs = when {
-                            missCount > 30 -> 1000L // 約3秒以上見つからない場合は1秒に1回
-                            missCount > 10 -> 500L  // 約1秒以上見つからない場合は0.5秒に1回
+                            missCount > 30 -> 1000L
+                            missCount > 10 -> 500L
                             else -> 100L
                         }
                         detectedCorners = null
@@ -201,7 +195,6 @@ fun CameraScreen(
         }
     }
 
-    // 決定（直接認識）処理：検出成功時点の画像を使用して直ちに解析へ進む
     fun processDirectly() {
         if (isCapturing) return
         val bitmap = lastDetectedBitmap
@@ -235,7 +228,6 @@ fun CameraScreen(
         }
     }
 
-    // 手動ボタン押下時処理：検出成功時点の画像をロードしてCornerScreenへ遷移する
     fun processManual() {
         if (isCapturing) return
         val bitmap = lastDetectedBitmap
@@ -315,7 +307,6 @@ fun CameraScreen(
                     }
                 )
 
-                // リアルタイムオーバーレイ描画
                 Canvas(modifier = Modifier.fillMaxSize()) {
                     val corners = detectedCorners
                     val isReady = corners != null && corners.size == 4
@@ -348,25 +339,61 @@ fun CameraScreen(
             }
         }
 
-        // 上部ナビゲーションバー
-        Row(
+        // 上部エリア（タイトルロゴ ＋ 「戻る」「設定」小ぶりボタン）
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.TopCenter)
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+                .padding(top = 28.dp, start = 20.dp, end = 20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Button(onClick = onBackClick) {
-                Text("戻る")
-            }
+            // アプリタイトルロゴ
+            Text(
+                text = "GobanReader",
+                fontSize = 26.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(bottom = 16.dp) // ロゴ下の余白を広げてボタンを適度に下へ
+            )
 
-            Button(onClick = onSettingsClick) {
-                Text("設定")
+            // カメラ画面のすぐ上のナビゲーションボタン（主張を抑えたコンパクトなボタン）
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // 小さめで控えめな「戻る」ボタン
+                OutlinedButton(
+                    onClick = onBackClick,
+                    modifier = Modifier.height(36.dp),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, Color.Gray)
+                ) {
+                    Text(
+                        text = "戻る",
+                        fontSize = 13.sp,
+                        color = Color.LightGray
+                    )
+                }
+
+                // 小さめで控えめな「設定」ボタン
+                OutlinedButton(
+                    onClick = onSettingsClick,
+                    modifier = Modifier.height(36.dp),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, Color.Gray)
+                ) {
+                    Text(
+                        text = "設定",
+                        fontSize = 13.sp,
+                        color = Color.LightGray
+                    )
+                }
             }
         }
 
-        // 下部ボタン群とステータス表示
+        // 下部エリア
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -387,7 +414,6 @@ fun CameraScreen(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // 手動調整モードボタン（CornerScreenへ遷移）
                 OutlinedButton(
                     onClick = { processManual() },
                     enabled = !isCapturing && isReady,
@@ -402,7 +428,6 @@ fun CameraScreen(
                     )
                 }
 
-                // ダイレクト認識決定ボタン（直接DisplayScreenへ遷移）
                 Button(
                     onClick = { processDirectly() },
                     enabled = !isCapturing && isReady,
@@ -414,8 +439,9 @@ fun CameraScreen(
                     )
                 ) {
                     Text(
-                        text = if (isCapturing) "処理中..." else "この画角で決定（認識へ）",
-                        fontSize = 16.sp,
+                        text = if (isCapturing) "処理中..." else "確定",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
                         color = Color.White
                     )
                 }

@@ -82,22 +82,21 @@ fun App(
         }
         composable<Route.Display> {
             DisplayScreen(
-                readerViewModel,
+                viewModel = readerViewModel,
                 onBackClick = {
-                    navController.popBackStack(Route.Camera, inclusive = false)
+                    navController.popBackStack<Route.Camera>(inclusive = false)
+                },
+                onSettingsClick = {
+                    navController.navigate(Route.Settings)
                 }
             )
         }
         composable<Route.Settings> {
             SettingScreen(
                 viewModel = readerViewModel,
-                onBlackPlayerChanged = { name -> readerViewModel.updateBlackPlayer(name) },
-                onWhitePlayerChanged = { name -> readerViewModel.updateWhitePlayer(name) },
-                onGetGobanClick = {
-                    // 設定画面からカメラに戻る場合
-                    navController.popBackStack(Route.Camera, inclusive = false)
-                },
-                onHistoryClick = { navController.navigate(Route.History) }
+                onBlackPlayerChanged = { readerViewModel.updateBlackPlayer(it) },
+                onWhitePlayerChanged = { readerViewModel.updateWhitePlayer(it) },
+                onBackClick = { navController.popBackStack() } // ★ popBackStackで呼び出し元へ戻る
             )
         }
         composable<Route.History> {

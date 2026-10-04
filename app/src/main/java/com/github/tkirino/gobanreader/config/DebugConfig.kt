@@ -12,5 +12,6 @@ object DebugConfig {
     // 碁石検出CNN用教師データ収集ルーチン（聖域・変更厳禁）
     const val CNN_TRAINING_DATA_EXPORT = false
 
-
+    // ★追加: 解析ごとの全交点推論スコアをCSV出力するフラグ
+    const val EXPORT_INFERENCE_SCORES_CSV = false
 }
