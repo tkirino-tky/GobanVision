@@ -7,11 +7,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
-import java.text.SimpleDateFormat
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.util.Date
-import java.util.Locale
 
 class SgfWriter(private val context: Context) {
 
@@ -46,7 +43,7 @@ class SgfWriter(private val context: Context) {
         if (gameRecord.nextPlayer.isNotEmpty()) {
             sb.append("PL[${gameRecord.nextPlayer}]")
         }
-        val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        val currentDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
         sb.append("DT[$currentDate]")
 
         // 初期配置（黒石）の書き出し
@@ -85,29 +82,19 @@ class SgfWriter(private val context: Context) {
     }
 
     /**
-     * SGFファイルを Download/SgfFiles フォルダに自動命名で保存する
-     * UIをブロックしないよう非同期（suspend）で処理する
+     * 指定されたファイル名で SGF ファイルを Download/SgfFiles フォルダに保存する
      */
-    suspend fun saveSgfFileAutoNamed(sgfContent: String): Result<File> {
+    suspend fun saveSgfFile(sgfContent: String, fileName: String): Result<File> {
         return withContext(Dispatchers.IO) {
             runCatching {
-                // 1. 保存先フォルダの変更 (Download/SgfFiles)
                 val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-                val appDir = File(downloadsDir, "SgfFiles")
-
-                if (!appDir.exists()) {
-                    appDir.mkdirs()
+                val targetDir = File(downloadsDir, "SgfFiles")
+                if (!targetDir.exists()) {
+                    targetDir.mkdirs()
                 }
 
-                // 2. スクリーンショット方式のファイル名作成
-                val current = LocalDateTime.now()
-                val formatter = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss")
-                val formattedDate = current.format(formatter)
-                val fileName = "GobanReader-$formattedDate.sgf"
+                val targetFile = File(targetDir, fileName)
 
-                val targetFile = File(appDir, fileName)
-
-                // 3. ファイルへの書き込み (UTF-8)
                 FileOutputStream(targetFile).use { output ->
                     output.write(sgfContent.toByteArray(Charsets.UTF_8))
                 }
@@ -115,5 +102,17 @@ class SgfWriter(private val context: Context) {
                 targetFile
             }
         }
+    }
+
+    /**
+     * SGFファイルを Download/SgfFiles フォルダに自動命名（タイムスタンプ）で保存する
+     */
+    suspend fun saveSgfFileAutoNamed(sgfContent: String): Result<File> {
+        val current = LocalDateTime.now()
+        val formatter = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss")
+        val formattedDate = current.format(formatter)
+        val fileName = "GobanReader-$formattedDate.sgf"
+
+        return saveSgfFile(sgfContent, fileName)
     }
 }

@@ -91,7 +91,8 @@ class CnnStoneDetector(private val interpreter: Interpreter) {
      * 確率分布から最終的な盤面状態（石の色・確信度）を決定する関数
      */
     fun aggregateInferences(
-        frameProbsList: List<Array<Array<FloatArray>>>
+        frameProbsList: List<Array<Array<FloatArray>>>,
+        sessionId: String? = null
     ): Pair<List<List<StoneColor>>, List<List<Boolean>>> {
         val boardLayout = MutableList(19) { MutableList(19) { StoneColor.EMPTY } }
         val certaintyLayout = MutableList(19) { MutableList(19) { true } }
@@ -146,14 +147,15 @@ class CnnStoneDetector(private val interpreter: Interpreter) {
             }
         }
 
-        // ★ CSVファイル出力の実行（Download/DebugLogs/ へ出力）
+        // ★ CSVファイル出力の実行（Download/StoneProb フォルダへ出力）
         val boardArray = Array(19) { r -> Array(19) { c -> boardLayout[r][c] } }
         val certaintyArray = Array(19) { r -> Array(19) { c -> certaintyLayout[r][c] } }
         exportInferenceScoresToCsv(
             boardSize = 19,
             maxConfidencePerClassMap = probsMap,
             finalColors = boardArray,
-            certaintyMap = certaintyArray
+            certaintyMap = certaintyArray,
+            sessionId = sessionId
         )
 
         return Pair(boardLayout.map { it.toList() }, certaintyLayout.map { it.toList() })
@@ -211,33 +213,36 @@ class CnnStoneDetector(private val interpreter: Interpreter) {
      */
     fun detectStones(
         rectifiedMat: Mat,
-        geometryGrid: Array<Array<Point>>
+        geometryGrid: Array<Array<Point>>,
+        sessionId: String? = null
     ): Pair<List<List<StoneColor>>, List<List<Boolean>>> {
         val singleProbs = predictProbabilities(rectifiedMat, geometryGrid)
-        return aggregateInferences(listOf(singleProbs))
+        return aggregateInferences(listOf(singleProbs), sessionId)
     }
 
     /**
-     * 全交点の推論結果・事後確率スコアをCSVファイルに出力するデバッグ関数
-     * （Context不要で Download/DebugLogs フォルダへ直接書き出し）
+     * 全交点の推論結果・事後確率スコアを CSV ファイルに出力するデバッグ関数
+     * （Download/StoneProb/ フォルダへ一括保存）
      */
     private fun exportInferenceScoresToCsv(
         boardSize: Int = 19,
-        maxConfidencePerClassMap: Array<Array<FloatArray>>, // [row][col][0:EMPTY, 1:BLACK, 2:WHITE]
+        maxConfidencePerClassMap: Array<Array<FloatArray>>,
         finalColors: Array<Array<StoneColor>>,
-        certaintyMap: Array<Array<Boolean>>
+        certaintyMap: Array<Array<Boolean>>,
+        sessionId: String? = null
     ) {
         if (!DebugConfig.isEnabled || !DebugConfig.EXPORT_INFERENCE_SCORES_CSV) return
 
         try {
-            val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-            val fileName = "inference_scores_$timeStamp.csv"
+            val timeStamp = sessionId ?: "game_${System.currentTimeMillis()}"
+            val fileName = "Goban_${timeStamp}_prob.csv"
 
             val downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-            val debugLogsDir = File(downloadDir, "DebugLogs")
-            if (!debugLogsDir.exists()) debugLogsDir.mkdirs()
+            // 確実に StoneProb フォルダを作成して保存
+            val probDir = File(downloadDir, "StoneProb")
+            if (!probDir.exists()) probDir.mkdirs()
 
-            val file = File(debugLogsDir, fileName)
+            val file = File(probDir, fileName)
 
             file.bufferedWriter().use { writer ->
                 writer.write("row,col,score_empty,score_black,score_white,final_color,is_certain\n")

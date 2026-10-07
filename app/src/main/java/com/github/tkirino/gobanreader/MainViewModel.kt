@@ -14,6 +14,7 @@ import com.github.tkirino.gobanreader.model.GameRecord
 import com.github.tkirino.gobanreader.model.ReaderUiState
 import com.github.tkirino.gobanreader.model.StoneColor
 import com.github.tkirino.gobanreader.stones.CnnStoneDetector
+import com.github.tkirino.gobanreader.utility.CornerUtils
 import com.github.tkirino.gobanreader.utility.PreferencesManager
 import com.github.tkirino.gobanreader.vision.BoardRectifier
 import com.github.tkirino.gobanreader.vision.YoloCornerDetector
@@ -219,10 +220,20 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     val cnnDetector = CnnStoneDetector(stoneInterpreterInstance)
 
                     // 単一画像から安全フィルタ付きで高精度推論を実行
-                    val (stoneResult, certaintyResult) = cnnDetector.detectStones(rectifiedMat, geometryGrid)
+                    val (stoneResult, certaintyResult) = cnnDetector.detectStones(rectifiedMat, geometryGrid, currentSessionId)
 
+                    if (DebugConfig.isEnabled && DebugConfig.CNN_TRAINING_DATA_EXPORT_OLD) {
+                        // 1. 既存の40x40pxデータ出力（現行維持）
+                        exportCNNTrainingData(
+                            rectifiedMat,
+                            geometryGrid,
+                            stoneResult,
+                            currentSessionId
+                        )
+                    }
                     if (DebugConfig.isEnabled && DebugConfig.CNN_TRAINING_DATA_EXPORT) {
-                        exportCNNTrainingData(rectifiedMat, geometryGrid, stoneResult)
+                        // 2. 新規：1.5倍幅（60x60px）データ出力（完全独立・正統幾何処理）
+                        exportCNNTrainingData60(src, corners, stoneResult, currentSessionId)
                     }
 
                     _uiState.update {
@@ -342,7 +353,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
             val sgfWriter = SgfWriter(context)
             val sgfString = sgfWriter.generateSgfString(updatedGameRecord)
-            val result = sgfWriter.saveSgfFileAutoNamed(sgfString)
+
+            val fileName = currentSessionId?.let { "$it.sgf" }
+            val result = if (fileName != null) {
+                sgfWriter.saveSgfFile(sgfString, fileName)
+            } else {
+                sgfWriter.saveSgfFileAutoNamed(sgfString)
+            }
 
             result.onSuccess { savedFile ->
                 onFileSaved(savedFile)
@@ -365,7 +382,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             val success = Imgcodecs.imwrite(file.absolutePath, mat)
 
             if (success) {
-                Log.d("MainViewModel", "YOLO訓練データ(PNG)を正方形で正常出力しました: ${file.absolutePath}")
+                Log.d("MainViewModel", "YOLO訓練データ(PNG)を正方形で正常出力しました: $currentSessionId")
             } else {
                 Log.e("MainViewModel", "YOLO訓練データの保存に失敗しました: ${file.absolutePath}")
             }
@@ -374,16 +391,20 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    /**
+     * 既存：40x40pxのCNN訓練データセット出力関数（※完全保持）
+     */
     private fun exportCNNTrainingData(
         rectifiedMat: Mat,
         geometryGrid: Array<Array<Point>>,
-        boardLayout: List<List<StoneColor>>
+        boardLayout: List<List<StoneColor>>,
+        sessionId: String? = null
     ) {
         try {
             val downloadsDir =
                 android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DOWNLOADS)
-            val baseDir = File(downloadsDir, "goban_dataset")
-            val gameId = "game_${System.currentTimeMillis()}"
+            val baseDir = File(downloadsDir, "CNN_Stones")
+            val gameId = sessionId ?: "game_${System.currentTimeMillis()}"
             val gameFolder = File(baseDir, gameId)
             if (!gameFolder.exists()) {
                 gameFolder.mkdirs()
@@ -424,6 +445,108 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             File(gameFolder, "labels.csv").writeText(csvContent.toString())
         } catch (e: Exception) {
             Log.e("DatasetExport", "データセット出力エラー", e)
+        }
+    }
+
+    /**
+     * 新規：1.5倍幅（60x60px）のCNN訓練データセット出力関数
+     * 既存のファイル保存処理（Imgcodecs.imwrite / CSVラベル出力）を踏襲し、デバッグログを詳細化
+     */
+    /**
+     * 新規：60x60pxのCNN訓練データセット出力関数
+     * 既存の40x40px出力ロジック(Imgcodecs.imwrite / labels.csv)を踏襲し、
+     * 切り出しサイズを60x60pxに変更してLogcatに詳細ログを出力します。
+     */
+    private fun exportCNNTrainingData60(
+        srcMat: Mat,
+        corners: List<Point>,
+        boardLayout: List<List<StoneColor>>,
+        sessionId: String? = null
+    ) {
+        try {
+            Log.d("GobanDebug", "=== exportCNNTrainingData60 開始 ===")
+            Log.d("GobanDebug", "入力Matサイズ: 幅=${srcMat.cols()}, 高さ=${srcMat.rows()}")
+            Log.d("GobanDebug", "入力コーナー数: ${corners.size}")
+
+            if (corners.size != 4) {
+                Log.e("GobanDebug", "エラー: コーナー指定が4点ではありません (${corners.size}点)")
+                return
+            }
+
+            // 既存の透視変換処理を使用
+            val rectifiedMat = BoardRectifier.rectify(srcMat, corners)
+            Log.d("GobanDebug", "透視変換後のMatサイズ: 幅=${rectifiedMat.cols()}, 高さ=${rectifiedMat.rows()}")
+
+            val downloadsDir = android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DOWNLOADS)
+            val baseDir = File(downloadsDir, "CNN_Stones_60")
+            val gameId = sessionId ?: "game_${System.currentTimeMillis()}"
+            val gameFolder = File(baseDir, gameId)
+            if (!gameFolder.exists()) {
+                val created = gameFolder.mkdirs()
+                Log.d("GobanDebug", "出力フォルダ作成: ${gameFolder.absolutePath} (結果: $created)")
+            }
+
+            // 算術グリッド（交点座標）の生成
+            val geometryGrid = createArithmeticGrid(
+                rectifiedMat.cols().toDouble(),
+                rectifiedMat.rows().toDouble()
+            )
+
+            val patchSize = 60
+            val half = patchSize / 2 // 30px
+            val csvContent = StringBuilder()
+            csvContent.append("filename_base,row,col,label\n")
+
+            var savedCount = 0
+
+            for (r in 0 until 19) {
+                for (c in 0 until 19) {
+                    val center = geometryGrid[r][c]
+                    val x = center.x.toInt()
+                    val y = center.y.toInt()
+
+                    // 中心(x, y)から前後30px（計60px）で切り出し
+                    val x1 = x - half
+                    val y1 = y - half
+
+                    // 画像範囲外にはみ出さないよう安全にクランプ
+                    val safeX1 = x1.coerceIn(0, maxOf(0, rectifiedMat.cols() - patchSize))
+                    val safeY1 = y1.coerceIn(0, maxOf(0, rectifiedMat.rows() - patchSize))
+                    val rect = Rect(safeX1, safeY1, patchSize, patchSize)
+
+                    Log.d("GobanDebug", "[r$r, c$c] 中心=($x, $y) -> 計算範囲: x1=$x1, y1=$y1 / 適用Rect=[x:${rect.x}, y:${rect.y}, w:${rect.width}, h:${rect.height}]")
+
+                    if (rect.width > 0 && rect.height > 0) {
+                        val colorPatch = Mat(rectifiedMat, rect)
+                        val filenameBase = "r${r}_c${c}"
+                        val colorFile = File(gameFolder, "${filenameBase}_color.png")
+
+                        // 既存のImgcodecs.imwriteを使用
+                        val success = Imgcodecs.imwrite(colorFile.absolutePath, colorPatch)
+                        if (success) {
+                            savedCount++
+                        } else {
+                            Log.e("GobanDebug", "[r$r, c$c] Imgcodecs.imwrite 保存失敗: ${colorFile.absolutePath}")
+                        }
+
+                        val labelNum = when (boardLayout[r][c]) {
+                            StoneColor.EMPTY -> 0
+                            StoneColor.BLACK -> 1
+                            StoneColor.WHITE -> 2
+                        }
+                        csvContent.append("$filenameBase,$r,$c,$labelNum\n")
+                        colorPatch.release()
+                    }
+                }
+            }
+
+            File(gameFolder, "labels.csv").writeText(csvContent.toString())
+            rectifiedMat.release()
+
+            Log.d("GobanDebug", "=== exportCNNTrainingData60 完了: 保存成功 $savedCount/361 件 ===")
+
+        } catch (e: Exception) {
+            Log.e("GobanDebug", "exportCNNTrainingData60で例外が発生しました", e)
         }
     }
 

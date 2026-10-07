@@ -35,6 +35,7 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = true // R8によるコード最適化・難読化を有効化
+            isShrinkResources = true // Lintの指摘により追加
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
