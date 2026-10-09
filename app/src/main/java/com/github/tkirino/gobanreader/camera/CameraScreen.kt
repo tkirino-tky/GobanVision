@@ -25,6 +25,9 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -61,6 +64,7 @@ fun CameraScreen(
     onBackClick: () -> Unit
 ) {
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
     val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
     val coroutineScope = rememberCoroutineScope()
 
@@ -183,15 +187,37 @@ fun CameraScreen(
         }
     }
 
-    LaunchedEffect(Unit) {
-        if (!cameraPermissionState.status.isGranted) {
-            cameraPermissionState.launchPermissionRequest()
+    // アプリのライフサイクル(フォアグラウンド復帰 / バックグラウンド退避)を監視してカメラをオープン/クローズする
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_RESUME -> {
+                    Log.d("CameraScreen", "ON_RESUME: カメラ再オープン開始の判定")
+                    val textureView = currentTextureView
+                    if (textureView != null && textureView.isAvailable && cameraPermissionState.status.isGranted) {
+                        Log.d("CameraScreen", "ON_RESUME: TextureView準備完了のためカメラを再オープン")
+                        camera2Manager.openCamera(textureView, defaultZoomRatio) { size ->
+                            fixAspectRatio(textureView, size)
+                        }
+                    }
+                }
+                Lifecycle.Event.ON_PAUSE -> {
+                    Log.d("CameraScreen", "ON_PAUSE: バックグラウンド移行のためカメラを解放")
+                    camera2Manager.closeCamera()
+                }
+                else -> {}
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+            camera2Manager.closeCamera()
         }
     }
 
-    DisposableEffect(Unit) {
-        onDispose {
-            camera2Manager.closeCamera()
+    LaunchedEffect(Unit) {
+        if (!cameraPermissionState.status.isGranted) {
+            cameraPermissionState.launchPermissionRequest()
         }
     }
 
@@ -230,10 +256,28 @@ fun CameraScreen(
 
     fun processManual() {
         if (isCapturing) return
-        val bitmap = lastDetectedBitmap
+
+        val targetBitmap: Bitmap? = lastDetectedBitmap ?: run {
+            val textureView = currentTextureView ?: return@run null
+            val raw = textureView.bitmap ?: return@run null
+            val transformMatrix = Matrix()
+            textureView.getTransform(transformMatrix)
+            val transformed = Bitmap.createBitmap(raw, 0, 0, raw.width, raw.height, transformMatrix, true)
+
+            val squareSize = minOf(transformed.width, transformed.height)
+            val startX = (transformed.width - squareSize) / 2
+            val startY = (transformed.height - squareSize) / 2
+            val cropped = Bitmap.createBitmap(transformed, startX, startY, squareSize, squareSize)
+
+            if (raw != transformed && !raw.isRecycled) raw.recycle()
+            if (transformed != cropped && !transformed.isRecycled) transformed.recycle()
+            cropped
+        }
+
         val corners = lastDetectedRawCorners
 
-        if (bitmap == null || corners == null) {
+        if (targetBitmap == null) {
+            Log.d("CameraScreen", "手動調整: 画像取得不可のためそのまま遷移")
             onManualInputClick()
             return
         }
@@ -244,13 +288,17 @@ fun CameraScreen(
                 val timestamp = System.currentTimeMillis()
                 val file = File(context.cacheDir, "board_capture_$timestamp.png")
                 FileOutputStream(file).use { out ->
-                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+                    targetBitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
                 }
 
                 viewModel.loadPhotoForAdjustment(file.absolutePath) { _ ->
                     coroutineScope.launch(Dispatchers.Main) {
                         isCapturing = false
-                        viewModel.setInitialCorners(corners)
+                        if (corners != null && corners.size == 4) {
+                            viewModel.setInitialCorners(corners)
+                        } else {
+                            viewModel.setInitialCorners(emptyList())
+                        }
                         onManualInputClick()
                     }
                 }
@@ -339,7 +387,7 @@ fun CameraScreen(
             }
         }
 
-        // 上部エリア（タイトルロゴ ＋ 「戻る」「設定」小ぶりボタン）
+        // 上部エリア
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -347,23 +395,20 @@ fun CameraScreen(
                 .padding(top = 28.dp, start = 20.dp, end = 20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // アプリタイトルロゴ
             Text(
                 text = "GobanReader",
                 fontSize = 26.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.White,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.padding(bottom = 16.dp) // ロゴ下の余白を広げてボタンを適度に下へ
+                modifier = Modifier.padding(bottom = 16.dp)
             )
 
-            // カメラ画面のすぐ上のナビゲーションボタン（主張を抑えたコンパクトなボタン）
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // 小さめで控えめな「戻る」ボタン
                 OutlinedButton(
                     onClick = onBackClick,
                     modifier = Modifier.height(36.dp),
@@ -377,7 +422,6 @@ fun CameraScreen(
                     )
                 }
 
-                // 小さめで控えめな「設定」ボタン
                 OutlinedButton(
                     onClick = onSettingsClick,
                     modifier = Modifier.height(36.dp),
@@ -416,7 +460,7 @@ fun CameraScreen(
             ) {
                 OutlinedButton(
                     onClick = { processManual() },
-                    enabled = !isCapturing && isReady,
+                    enabled = !isCapturing,
                     modifier = Modifier
                         .weight(1f)
                         .height(56.dp)
