@@ -28,7 +28,6 @@ class CnnStoneDetector(private val interpreter: Interpreter) {
     // 60x60px画像に対応するため、半径(half)を30pxに設定（30 + 30 = 60px）
     private val patchSize = 60
     private val patchRadius = 30
-    private val confidenceThreshold = 0.80f
 
     companion object {
         private const val INDEX_EMPTY = 0
@@ -38,7 +37,6 @@ class CnnStoneDetector(private val interpreter: Interpreter) {
 
     /**
      * 19x19全交点の確率分布 [19][19][3] を算出する関数
-     * MainViewModel.kt の exportCNNTrainingData60() と完全同一の切り出しロジックを採用
      */
     fun predictProbabilities(
         rectifiedMat: Mat,
@@ -55,7 +53,6 @@ class CnnStoneDetector(private val interpreter: Interpreter) {
                     val x = pt.x.toInt()
                     val y = pt.y.toInt()
 
-                    // exportCNNTrainingData60() と完全に一致する範囲計算および安全クランプ処理
                     val x1 = x - patchRadius
                     val y1 = y - patchRadius
 
@@ -79,14 +76,15 @@ class CnnStoneDetector(private val interpreter: Interpreter) {
         return probGrid
     }
 
-    // タイポ互換用（既存呼び出し保護）
+    // タイポ互換用
     fun predictProabilities(
         rectifiedMat: Mat,
         geometryGrid: Array<Array<Point>>
     ): Array<Array<FloatArray>> = predictProbabilities(rectifiedMat, geometryGrid)
 
     /**
-     * 確率分布から最終的な盤面状態（石の色・確信度）を決定する関数
+     * 確率分布から最終的な盤面状態を決定する関数
+     * Post Processing（光飛び補正・閾値変更）を行わず、CNNの確率（最大値）をそのまま採用します。
      */
     fun aggregateInferences(
         frameProbsList: List<Array<Array<FloatArray>>>,
@@ -114,38 +112,18 @@ class CnnStoneDetector(private val interpreter: Interpreter) {
                     }
                 }
 
-                var winningClass = maxIndex
-
-                // ★【光飛び対策安全フィルタ：偽白石防止】
-                // 白石(INDEX_WHITE)と判定されても確率が0.80未満の場合はノイズとみなしEMPTY（空白）へ変換
-                if (winningClass == INDEX_WHITE && maxVal < confidenceThreshold) {
-                    winningClass = INDEX_EMPTY
-                }
-
-                val predictedColor = when (winningClass) {
+                val predictedColor = when (maxIndex) {
                     INDEX_BLACK -> StoneColor.BLACK
                     INDEX_WHITE -> StoneColor.WHITE
                     else -> StoneColor.EMPTY
                 }
 
-                // ★【光飛び対策安全フィルタ：黒石ハイライト補正】
-                // 黒石と判定され、確率が 0.80 未満であっても、白石の確率が極めて低い（0.05未満）場合は
-                // 表面テカリ（ハイライト）によるスコア下落とみなし確信度 true（？なし）とする
-                val isCertain = when (winningClass) {
-                    INDEX_EMPTY -> true
-                    INDEX_BLACK -> {
-                        val whiteScore = probs[INDEX_WHITE]
-                        (maxVal >= confidenceThreshold) || (whiteScore < 0.05f)
-                    }
-                    else -> (maxVal >= confidenceThreshold)
-                }
-
                 boardLayout[row][col] = predictedColor
-                certaintyLayout[row][col] = isCertain
+                certaintyLayout[row][col] = true
             }
         }
 
-        // ★ CSVファイル出力の実行（Download/StoneProb フォルダへ出力）
+        // CSVファイル出力の実行（DebugConfig.EXPORT_INFERENCE_SCORES_CSV が true の場合に保存）
         val boardArray = Array(19) { r -> Array(19) { c -> boardLayout[r][c] } }
         val certaintyArray = Array(19) { r -> Array(19) { c -> certaintyLayout[r][c] } }
         exportInferenceScoresToCsv(
@@ -168,7 +146,6 @@ class CnnStoneDetector(private val interpreter: Interpreter) {
         val channels = ArrayList<Mat>()
 
         return try {
-            // YCrCb色空間で輝度(Y)チャンネルのみCLAHE補正
             Imgproc.cvtColor(colorMat, ycrCbMat, Imgproc.COLOR_BGR2YCrCb)
             Core.split(ycrCbMat, channels)
 
@@ -178,7 +155,6 @@ class CnnStoneDetector(private val interpreter: Interpreter) {
             Core.merge(channels, ycrCbMat)
             Imgproc.cvtColor(ycrCbMat, rgbMat, Imgproc.COLOR_YCrCb2RGB)
 
-            // 60x60x3 の Float32 バッファを作成 (60 * 60 * 3 * 4 bytes)
             val colorBuffer = ByteBuffer.allocateDirect(1 * 60 * 60 * 3 * 4).order(ByteOrder.nativeOrder())
             val colorBmp = Bitmap.createBitmap(rgbMat.cols(), rgbMat.rows(), Bitmap.Config.ARGB_8888)
             Utils.matToBitmap(rgbMat, colorBmp)
@@ -221,7 +197,7 @@ class CnnStoneDetector(private val interpreter: Interpreter) {
 
     /**
      * 全交点の推論結果・事後確率スコアを CSV ファイルに出力するデバッグ関数
-     * （Download/StoneProb/ フォルダへ一括保存）
+     * （Download/StoneProb/ フォルダへ保存）
      */
     private fun exportInferenceScoresToCsv(
         boardSize: Int = 19,
@@ -237,7 +213,6 @@ class CnnStoneDetector(private val interpreter: Interpreter) {
             val fileName = "Goban_${timeStamp}_prob.csv"
 
             val downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-            // 確実に StoneProb フォルダを作成して保存
             val probDir = File(downloadDir, "StoneProb")
             if (!probDir.exists()) probDir.mkdirs()
 

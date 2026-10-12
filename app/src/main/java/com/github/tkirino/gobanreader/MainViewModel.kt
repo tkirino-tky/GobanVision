@@ -219,21 +219,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
                     val cnnDetector = CnnStoneDetector(stoneInterpreterInstance)
 
-                    // 単一画像から安全フィルタ付きで高精度推論を実行
                     val (stoneResult, certaintyResult) = cnnDetector.detectStones(rectifiedMat, geometryGrid, currentSessionId)
 
-                    if (DebugConfig.isEnabled && DebugConfig.CNN_TRAINING_DATA_EXPORT_OLD) {
-                        // 1. 既存の40x40pxデータ出力（現行維持）
-                        exportCNNTrainingData(
-                            rectifiedMat,
-                            geometryGrid,
-                            stoneResult,
-                            currentSessionId
-                        )
-                    }
                     if (DebugConfig.isEnabled && DebugConfig.CNN_TRAINING_DATA_EXPORT) {
-                        // 2. 新規：1.5倍幅（60x60px）データ出力（完全独立・正統幾何処理）
-                        exportCNNTrainingData60(src, corners, stoneResult, currentSessionId)
+                        // 60x60pxデータ出力
+                        exportCNNTrainingData(src, corners, stoneResult, currentSessionId)
                     }
 
                     _uiState.update {
@@ -259,9 +249,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun processCapturedPhoto(file: File) {
-        loadPhotoForAdjustment(file.absolutePath)
-    }
 
     fun updateBlackPlayer(name: String) {
         _uiState.update { it.copy(gameRecord = it.gameRecord.copy(blackPlayer = name)) }
@@ -392,67 +379,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /**
-     * 既存：40x40pxのCNN訓練データセット出力関数（※完全保持）
-     */
-    private fun exportCNNTrainingData(
-        rectifiedMat: Mat,
-        geometryGrid: Array<Array<Point>>,
-        boardLayout: List<List<StoneColor>>,
-        sessionId: String? = null
-    ) {
-        try {
-            val downloadsDir =
-                android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DOWNLOADS)
-            val baseDir = File(downloadsDir, "CNN_Stones")
-            val gameId = sessionId ?: "game_${System.currentTimeMillis()}"
-            val gameFolder = File(baseDir, gameId)
-            if (!gameFolder.exists()) {
-                gameFolder.mkdirs()
-            }
-
-            val patchSize = 40
-            val csvContent = StringBuilder()
-            csvContent.append("filename_base,row,col,label\n")
-
-            for (r in 0 until 19) {
-                for (c in 0 until 19) {
-                    val center = geometryGrid[r][c]
-                    val x = center.x.toInt()
-                    val y = center.y.toInt()
-
-                    val half = patchSize / 2
-                    val x1 = (x - half).coerceIn(0, rectifiedMat.cols() - patchSize)
-                    val y1 = (y - half).coerceIn(0, rectifiedMat.rows() - patchSize)
-                    val rect = Rect(x1, y1, patchSize, patchSize)
-
-                    if (rect.width > 0 && rect.height > 0) {
-                        val colorPatch = Mat(rectifiedMat, rect)
-                        val filenameBase = "r${r}_c${c}"
-                        val colorFile = File(gameFolder, "${filenameBase}_color.png")
-                        Imgcodecs.imwrite(colorFile.absolutePath, colorPatch)
-
-                        val labelNum = when (boardLayout[r][c]) {
-                            StoneColor.EMPTY -> 0
-                            StoneColor.BLACK -> 1
-                            StoneColor.WHITE -> 2
-                        }
-                        csvContent.append("$filenameBase,$r,$c,$labelNum\n")
-                        colorPatch.release()
-                    }
-                }
-            }
-
-            File(gameFolder, "labels.csv").writeText(csvContent.toString())
-        } catch (e: Exception) {
-            Log.e("DatasetExport", "データセット出力エラー", e)
-        }
-    }
-
-    /**
      * =========================================================================================
      * 【重要・絶対改変禁止 / CRITICAL - DO NOT MODIFY OR REMOVE】
      *
-     * この関数 `exportCNNTrainingData60` は、CNN（60x60px）の訓練データセットを出力・生成し、
+     * この関数 `exportCNNTrainingData` は、CNN（60x60px）の訓練データセットを出力・生成し、
      * 内部で処理される切り出し画像や正答ラベルを確認するための極めて重要な基準コードです。
      *
      * ■ 役割と重要性:
@@ -463,14 +393,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
      *    AI推論の精度破綻やデータ不整合のトラブルを引き起こすため、絶対に行わないでください。
      * =========================================================================================
      */
-    private fun exportCNNTrainingData60(
+    private fun exportCNNTrainingData(
         srcMat: Mat,
         corners: List<Point>,
         boardLayout: List<List<StoneColor>>,
         sessionId: String? = null
     ) {
         try {
-            Log.d("GobanDebug", "=== exportCNNTrainingData60 開始 ===")
+            Log.d("GobanDebug", "=== exportCNNTrainingData 開始 ===")
             Log.d("GobanDebug", "入力Matサイズ: 幅=${srcMat.cols()}, 高さ=${srcMat.rows()}")
             Log.d("GobanDebug", "入力コーナー数: ${corners.size}")
 
@@ -549,10 +479,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             File(gameFolder, "labels.csv").writeText(csvContent.toString())
             rectifiedMat.release()
 
-            Log.d("GobanDebug", "=== exportCNNTrainingData60 完了: 保存成功 $savedCount/361 件 ===")
+            Log.d("GobanDebug", "=== exportCNNTrainingData 完了: 保存成功 $savedCount/361 件 ===")
 
         } catch (e: Exception) {
-            Log.e("GobanDebug", "exportCNNTrainingData60で例外が発生しました", e)
+            Log.e("GobanDebug", "exportCNNTrainingDataで例外が発生しました", e)
         }
     }
 
