@@ -449,13 +449,19 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /**
-     * 新規：1.5倍幅（60x60px）のCNN訓練データセット出力関数
-     * 既存のファイル保存処理（Imgcodecs.imwrite / CSVラベル出力）を踏襲し、デバッグログを詳細化
-     */
-    /**
-     * 新規：60x60pxのCNN訓練データセット出力関数
-     * 既存の40x40px出力ロジック(Imgcodecs.imwrite / labels.csv)を踏襲し、
-     * 切り出しサイズを60x60pxに変更してLogcatに詳細ログを出力します。
+     * =========================================================================================
+     * 【重要・絶対改変禁止 / CRITICAL - DO NOT MODIFY OR REMOVE】
+     *
+     * この関数 `exportCNNTrainingData60` は、CNN（60x60px）の訓練データセットを出力・生成し、
+     * 内部で処理される切り出し画像や正答ラベルを確認するための極めて重要な基準コードです。
+     *
+     * ■ 役割と重要性:
+     * 1. CNNモデル（stone_classifier.tflite）の学習データを追加・再生成する際に不可欠。
+     * 2. 本関数で定義された60x60pxパッチの幾何切り出し・安全クランプ処理（coerceIn）は、
+     *    推論用クラス（CnnStoneDetector.kt）での画像切り出しの「絶対的な正解ロジック」です。
+     * 3. アプリの仕様変更やリファクタリング時であっても、本関数を削除・改変・変形することは
+     *    AI推論の精度破綻やデータ不整合のトラブルを引き起こすため、絶対に行わないでください。
+     * =========================================================================================
      */
     private fun exportCNNTrainingData60(
         srcMat: Mat,
@@ -514,7 +520,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     val safeY1 = y1.coerceIn(0, maxOf(0, rectifiedMat.rows() - patchSize))
                     val rect = Rect(safeX1, safeY1, patchSize, patchSize)
 
-                    Log.d("GobanDebug", "[r$r, c$c] 中心=($x, $y) -> 計算範囲: x1=$x1, y1=$y1 / 適用Rect=[x:${rect.x}, y:${rect.y}, w:${rect.width}, h:${rect.height}]")
+                    Log.d("GobanDebug", "[r$r, c$c] 中心=($x,$y) -> 計算範囲: x1=$x1, y1=$y1 / 適用Rect=[x:${rect.x}, y:${rect.y}, w:${rect.width}, h:${rect.height}]")
 
                     if (rect.width > 0 && rect.height > 0) {
                         val colorPatch = Mat(rectifiedMat, rect)

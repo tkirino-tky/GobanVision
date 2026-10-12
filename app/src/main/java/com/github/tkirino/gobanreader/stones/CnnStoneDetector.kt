@@ -16,8 +16,6 @@ import org.tensorflow.lite.Interpreter
 import java.io.File
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
-import java.text.SimpleDateFormat
-import java.util.Date
 import java.util.Locale
 
 data class DetectionResult(
@@ -27,7 +25,9 @@ data class DetectionResult(
 
 class CnnStoneDetector(private val interpreter: Interpreter) {
 
-    private val patchRadius = 20
+    // 60x60px画像に対応するため、半径(half)を30pxに設定（30 + 30 = 60px）
+    private val patchSize = 60
+    private val patchRadius = 30
     private val confidenceThreshold = 0.80f
 
     companion object {
@@ -38,6 +38,7 @@ class CnnStoneDetector(private val interpreter: Interpreter) {
 
     /**
      * 19x19全交点の確率分布 [19][19][3] を算出する関数
+     * MainViewModel.kt の exportCNNTrainingData60() と完全同一の切り出しロジックを採用
      */
     fun predictProbabilities(
         rectifiedMat: Mat,
@@ -54,24 +55,21 @@ class CnnStoneDetector(private val interpreter: Interpreter) {
                     val x = pt.x.toInt()
                     val y = pt.y.toInt()
 
-                    val x1 = (x - patchRadius).coerceIn(0, maxCols)
-                    val y1 = (y - patchRadius).coerceIn(0, maxRows)
-                    val x2 = (x + patchRadius).coerceIn(0, maxCols)
-                    val y2 = (y + patchRadius).coerceIn(0, maxRows)
+                    // exportCNNTrainingData60() と完全に一致する範囲計算および安全クランプ処理
+                    val x1 = x - patchRadius
+                    val y1 = y - patchRadius
 
-                    val w = x2 - x1
-                    val h = y2 - y1
+                    val safeX1 = x1.coerceIn(0, maxOf(0, maxCols - patchSize))
+                    val safeY1 = y1.coerceIn(0, maxOf(0, maxRows - patchSize))
+                    val roi = Rect(safeX1, safeY1, patchSize, patchSize)
 
-                    if (w > 0 && h > 0 && x1 + w <= maxCols && y1 + h <= maxRows) {
-                        val roi = Rect(x1, y1, w, h)
-                        val colorPatchMat = rectifiedMat.submat(roi)
-                        val resizedColor = Mat()
-                        Imgproc.resize(colorPatchMat, resizedColor, Size(40.0, 40.0))
+                    if (roi.width == patchSize && roi.height == patchSize) {
+                        val colorPatchMat = Mat(rectifiedMat, roi)
 
-                        probGrid[row][col] = runInferenceProbs(resizedColor)
+                        // 60x60pxパッチに対して推論を実行
+                        probGrid[row][col] = runInferenceProbs(colorPatchMat)
 
                         colorPatchMat.release()
-                        resizedColor.release()
                     }
                 }
             }
@@ -162,7 +160,7 @@ class CnnStoneDetector(private val interpreter: Interpreter) {
     }
 
     /**
-     * 単一パッチに対するTFLite推論を実行（CLAHE前処理適用）
+     * 単一パッチ（60x60px）に対するTFLite推論を実行（CLAHE前処理適用）
      */
     private fun runInferenceProbs(colorMat: Mat): FloatArray {
         val rgbMat = Mat()
@@ -180,11 +178,12 @@ class CnnStoneDetector(private val interpreter: Interpreter) {
             Core.merge(channels, ycrCbMat)
             Imgproc.cvtColor(ycrCbMat, rgbMat, Imgproc.COLOR_YCrCb2RGB)
 
-            val colorBuffer = ByteBuffer.allocateDirect(1 * 40 * 40 * 3 * 4).order(ByteOrder.nativeOrder())
+            // 60x60x3 の Float32 バッファを作成 (60 * 60 * 3 * 4 bytes)
+            val colorBuffer = ByteBuffer.allocateDirect(1 * 60 * 60 * 3 * 4).order(ByteOrder.nativeOrder())
             val colorBmp = Bitmap.createBitmap(rgbMat.cols(), rgbMat.rows(), Bitmap.Config.ARGB_8888)
             Utils.matToBitmap(rgbMat, colorBmp)
 
-            val intValues = IntArray(40 * 40)
+            val intValues = IntArray(60 * 60)
             colorBmp.getPixels(intValues, 0, colorBmp.width, 0, 0, colorBmp.width, colorBmp.height)
             for (pixel in intValues) {
                 colorBuffer.putFloat(((pixel shr 16) and 0xFF) / 255.0f)
