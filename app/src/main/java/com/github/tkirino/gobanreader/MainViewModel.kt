@@ -275,23 +275,36 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         _uiState.update { it.copy(gameRecord = it.gameRecord.copy(nextPlayer = nextPlayer)) }
     }
 
+    // MainViewModel.kt の updateStone 関数を以下のように差し替え
+
     fun updateStone(row: Int, col: Int, color: StoneColor) {
         _uiState.update { state ->
+            // 2次元リストを完全に新しく生成（ディープコピー）して Compose に再描画を強制する
             val newLayout = state.boardLayout.mapIndexed { r, list ->
                 if (r == row) {
-                    list.mapIndexed { c, current -> if (c == col) color else current }
+                    list.mapIndexed { c, current ->
+                        if (c == col) color else current
+                    }
                 } else {
                     list
                 }
             }
+
             val newCertainty = state.certaintyLayout.mapIndexed { r, list ->
                 if (r == row) {
-                    list.mapIndexed { c, current -> if (c == col) true else current }
+                    list.mapIndexed { c, current ->
+                        if (c == col) true else current
+                    }
                 } else {
                     list
                 }
             }
-            state.copy(boardLayout = newLayout, certaintyLayout = newCertainty)
+
+            // ReaderUiState のコピーを返して StateFlow を更新
+            state.copy(
+                boardLayout = newLayout,
+                certaintyLayout = newCertainty
+            )
         }
     }
 
@@ -501,7 +514,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             val patchSize = 60
             val half = patchSize / 2 // 30px
             val csvContent = StringBuilder()
-            csvContent.append("filename_base,row,col,label\n")
+            csvContent.append("filename,row,col,label\n")
 
             var savedCount = 0
 

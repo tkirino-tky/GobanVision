@@ -144,4 +144,35 @@ class YoloCornerDetector(private val interpreter: Interpreter) {
         }
         return byteBuffer
     }
+
+    // YoloCornerDetector.kt の末尾に追加
+
+    object BoardGeometryValidator {
+        /**
+         * 4点がつくる多角形の面積を計算 (Shoelace formula)
+         */
+        fun calculateArea(corners: List<Point>): Double {
+            if (corners.size != 4) return 0.0
+            var area = 0.0
+            for (i in 0 until 4) {
+                val j = (i + 1) % 4
+                area += corners[i].x * corners[j].y
+                area -= corners[j].x * corners[i].y
+            }
+            return kotlin.math.abs(area) / 2.0
+        }
+
+        /**
+         * 指定された4点が、画面に対して一定以上の広さを持つ適切な盤面範囲か判定
+         */
+        fun isValidBoardPolygon(corners: List<Point>, imageWidth: Double, imageHeight: Double): Boolean {
+            if (corners.size != 4) return false
+
+            // 画面全体に対する面積割合チェック（例: 正方形画像の15%未満なら非碁盤とみなす）
+            val totalArea = imageWidth * imageHeight
+            val polyArea = calculateArea(corners)
+
+            return polyArea >= totalArea * 0.15
+        }
+    }
 }

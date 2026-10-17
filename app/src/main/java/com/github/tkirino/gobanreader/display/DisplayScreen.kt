@@ -127,7 +127,7 @@ fun DisplayScreen(
                 Canvas(
                     modifier = Modifier
                         .fillMaxSize()
-                        .pointerInput(Unit) {
+                        .pointerInput(selectedTool) { // ★ ここを Unit から selectedTool に修正
                             detectTapGestures { offset ->
                                 val size = size.width.toFloat()
                                 val cellSize = size / 19f

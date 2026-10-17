@@ -254,8 +254,19 @@ fun CameraScreen(
         }
     }
 
+    // CameraScreen.kt 内の processManual() の修正例
+
+    // CameraScreen.kt 内の processManual() 関数を以下のように差し替え
+
     fun processManual() {
         if (isCapturing) return
+
+        // 【追加】YOLOが碁盤を認識していない状態（corners == null）なら手動画面へ進まない
+        val corners = lastDetectedRawCorners
+        if (corners == null || corners.size != 4) {
+            viewModel.toastMessage = "碁盤が検出されていません。カメラを碁盤に向けてください。"
+            return
+        }
 
         val targetBitmap: Bitmap? = lastDetectedBitmap ?: run {
             val textureView = currentTextureView ?: return@run null
@@ -274,13 +285,7 @@ fun CameraScreen(
             cropped
         }
 
-        val corners = lastDetectedRawCorners
-
-        if (targetBitmap == null) {
-            Log.d("CameraScreen", "手動調整: 画像取得不可のためそのまま遷移")
-            onManualInputClick()
-            return
-        }
+        if (targetBitmap == null) return
         isCapturing = true
 
         coroutineScope.launch(Dispatchers.IO) {
@@ -294,11 +299,7 @@ fun CameraScreen(
                 viewModel.loadPhotoForAdjustment(file.absolutePath) { _ ->
                     coroutineScope.launch(Dispatchers.Main) {
                         isCapturing = false
-                        if (corners != null && corners.size == 4) {
-                            viewModel.setInitialCorners(corners)
-                        } else {
-                            viewModel.setInitialCorners(emptyList())
-                        }
+                        viewModel.setInitialCorners(corners)
                         onManualInputClick()
                     }
                 }
@@ -306,7 +307,6 @@ fun CameraScreen(
                 Log.e("CameraScreen", "手動調整ロードエラー", e)
                 withContext(Dispatchers.Main) {
                     isCapturing = false
-                    onManualInputClick()
                 }
             }
         }
@@ -395,33 +395,22 @@ fun CameraScreen(
                 .padding(top = 28.dp, start = 20.dp, end = 20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
-                text = "GobanReader",
-                fontSize = 26.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(bottom = 16.dp)
+            // 【変更】Textからロゴ画像（Image）へ変更し、大きめに表示
+            androidx.compose.foundation.Image(
+                painter = androidx.compose.ui.res.painterResource(id = com.github.tkirino.gobanreader.R.drawable.goban_reader_logo),
+                contentDescription = "GobanReader Logo",
+                modifier = Modifier
+                    .fillMaxWidth(0.85f) // 画面幅の85%を使って大きめに表示
+                    .height(56.dp)        // 十分な高さを確保
+                    .padding(bottom = 12.dp),
+                contentScale = androidx.compose.ui.layout.ContentScale.Fit
             )
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.End, // 右寄せ
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                OutlinedButton(
-                    onClick = onBackClick,
-                    modifier = Modifier.height(36.dp),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, Color.Gray)
-                ) {
-                    Text(
-                        text = "戻る",
-                        fontSize = 13.sp,
-                        color = Color.LightGray
-                    )
-                }
-
                 OutlinedButton(
                     onClick = onSettingsClick,
                     modifier = Modifier.height(36.dp),

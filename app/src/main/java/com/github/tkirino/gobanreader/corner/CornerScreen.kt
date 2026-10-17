@@ -190,22 +190,24 @@ fun CornerScreen(
                 val cropSize = 120f
                 val halfCrop = cropSize / 2f
 
-                val srcX = (targetPoint.x.toFloat() - halfCrop).coerceIn(0f, (bitmapWidth - cropSize).coerceAtLeast(0f)).toInt()
-                val srcY = (targetPoint.y.toFloat() - halfCrop).coerceIn(0f, (bitmapHeight - cropSize).coerceAtLeast(0f)).toInt()
+                // 【修正】画像の端（0〜bitmapWidth/Height）まで制限なく切り出せるようにクランプ範囲を修正
+                val srcX = (targetPoint.x.toFloat() - halfCrop).coerceIn(0f, maxOf(0f, bitmapWidth - cropSize)).toInt()
+                val srcY = (targetPoint.y.toFloat() - halfCrop).coerceIn(0f, maxOf(0f, bitmapHeight - cropSize)).toInt()
 
                 val loupeSizeDp = 140.dp
                 val loupeSizePx = with(density) { loupeSizeDp.toPx() }
 
-                // 指が画面下部（盤面下側）にある場合は、虫眼鏡を指の上に配置しきれないため指の下へ退避
+                // 指のガード・位置オフセット計算
                 val loupeX = (touchPos.x - loupeSizePx / 2).coerceIn(0f, viewWidth - loupeSizePx)
+
+                // 【修正】画面上方（Y座標が小さい領域）でも画面外にはみ出さず正しく表示されるようオフセットを調整
                 val preferredY = if (touchPos.y > viewHeight * 0.6f) {
                     touchPos.y - loupeSizePx - 140f // 指のかなり上方に配置
                 } else {
-                    touchPos.y - loupeSizePx - 110f // 通常配置
+                    touchPos.y + 60f // 画面上方にある場合は指の下側に配置して見やすくする
                 }
 
-                // 上下に押し出されないよう全体高さ(screenHeight)側基準でマージンを調整
-                val loupeY = preferredY.coerceIn(-viewHeight * 0.2f, viewHeight + 50f)
+                val loupeY = preferredY.coerceIn(0f, maxOf(0f, viewHeight - loupeSizePx))
 
                 Box(
                     modifier = Modifier
@@ -266,6 +268,25 @@ fun CornerScreen(
 
             Button(
                 onClick = {
+                    // 画像に対する面積の割合チェック（直接計算）
+                    val polyArea = if (corners.size == 4) {
+                        var area = 0.0
+                        for (i in 0 until 4) {
+                            val j = (i + 1) % 4
+                            area += corners[i].x * corners[j].y
+                            area -= corners[j].x * corners[i].y
+                        }
+                        kotlin.math.abs(area) / 2.0
+                    } else 0.0
+
+                    val totalArea = bitmap.width.toDouble() * bitmap.height.toDouble()
+                    val isValid = polyArea >= totalArea * 0.15
+
+                    if (!isValid) {
+                        viewModel.toastMessage = "有効な碁盤の範囲ではありません。枠の位置を確認してください。"
+                        return@Button
+                    }
+
                     val expanded = CornerUtils.calculateExpandedCorners(corners)
                     onConfirmed(expanded)
                 },
